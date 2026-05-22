@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALVAO — ROI Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F2F4F7;
+  --card:#fff;
+  --text:#111827;--text2:#374151;--text3:#9CA3AF;--text4:#6B7280;
+  --bd:#E5E7EB;--lt:#F9FAFB;
+  --red:#D63F3F;--red-dk:#B83535;
+  --blue:#1B4DCC;--blue-lt:#EFF4FF;
+  --green:#1A7F4B;--green-lt:#ECFDF5;--green-bd:#A7F3D0;
+  --orange:#B45309;--orange-lt:#FFFBEB;--orange-bd:#FCD34D;
+  --teal:#0F766E;--teal-lt:#F0FDFA;--teal-bd:#99F6E4;
+  --crimson:#9B1C1C;--crimson-lt:#FEF2F2;--crimson-bd:#FECACA;
+  --purple:#6D28D9;--purple-lt:#F5F3FF;--purple-bd:#C4B5FD;
+  --r:12px;--r-sm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.05);
+  --sh-sm:0 1px 2px rgba(0,0,0,.05);
+}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── APP SHELL ── */
+.app-header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-mark{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.logo-title{font-size:15px;font-weight:700;color:var(--red);letter-spacing:-.2px;line-height:1.1}
+.logo-sub{font-size:11px;color:var(--text3);font-weight:400;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:8px}
+
+.app-nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:40px}
+.nav-left{display:flex;align-items:center;gap:6px}
+.btn-retake{background:none;border:none;font-size:12.5px;color:var(--text4);cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:4px;transition:color .12s}
+.btn-retake:hover{color:var(--text2)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.cur-wrap{display:flex;align-items:center;gap:0}
+.cur-sel{background:none;border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:5px 10px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.export-btn{display:flex;align-items:center;gap:5px;background:none;border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--text4);cursor:pointer;font-family:inherit;transition:all .12s}
+.export-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+.wrap{max-width:1100px;margin:0 auto;padding:24px 24px 60px}
+
+/* ── QUIZ ── */
+.quiz-page{min-height:calc(100vh - 57px);display:flex;flex-direction:column;align-items:center;background:#fff;padding:0}
+.quiz-segs{display:flex;gap:5px;width:100%;max-width:600px;padding:28px 32px 0}
+.quiz-seg{flex:1;height:3px;border-radius:2px;background:var(--bd);transition:background .35s ease}
+.quiz-seg.done{background:var(--red)}
+.quiz-seg.active{background:var(--red);opacity:.4}
+.quiz-content{display:flex;flex-direction:column;width:100%;max-width:600px;padding:0 32px;flex:1;justify-content:center;padding-top:32px;padding-bottom:80px}
+.quiz-qlbl{font-size:11.5px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;opacity:0;animation:fadeUp .35s ease forwards}
+.quiz-qh{font-size:clamp(22px,3.5vw,32px);font-weight:700;color:var(--text);line-height:1.2;letter-spacing:-.4px;margin-bottom:10px;opacity:0;animation:fadeUp .35s .05s ease forwards}
+.quiz-qhint{font-size:14px;color:var(--text4);line-height:1.65;margin-bottom:30px;max-width:460px;opacity:0;animation:fadeUp .35s .1s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.quiz-nbox{display:flex;align-items:center;border:2px solid var(--bd);border-radius:10px;padding:16px 20px;background:#fff;width:100%;gap:14px;transition:border-color .15s,box-shadow .15s;margin-bottom:14px;cursor:text;opacity:0;animation:fadeUp .35s .15s ease forwards}
+.quiz-nbox:focus-within{border-color:var(--red);box-shadow:0 0 0 4px rgba(214,63,63,.07)}
+.quiz-nbox.has-err{border-color:var(--red);box-shadow:0 0 0 4px rgba(214,63,63,.1)}
+.quiz-ninput{flex:1;font-size:34px;font-weight:700;font-family:'IBM Plex Mono',monospace;border:none;outline:none;background:transparent;color:var(--text);min-width:0;-moz-appearance:textfield}
+.quiz-ninput::placeholder{color:#D1D5DB}
+.quiz-ninput::-webkit-inner-spin-button,.quiz-ninput::-webkit-outer-spin-button{display:none}
+.quiz-nunit{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.quiz-narr-col{display:flex;flex-direction:column;gap:5px;align-items:center}
+.quiz-narr{background:none;border:none;cursor:pointer;color:var(--text3);padding:1px 3px;line-height:1;font-size:8px;display:flex;align-items:center;transition:color .1s}
+.quiz-narr:hover{color:var(--text2)}
+.quiz-nulbls{display:flex;flex-direction:column;gap:1px}
+.quiz-nulbl{font-size:12px;font-weight:600;color:var(--text3);white-space:nowrap;line-height:1.4}
+.quiz-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;opacity:0;animation:fadeUp .35s .2s ease forwards}
+.quiz-pill{padding:6px 16px;border:1.5px solid var(--bd);border-radius:999px;font-size:13px;font-weight:500;color:var(--text4);background:#fff;cursor:pointer;transition:all .12s;font-family:'IBM Plex Mono',monospace;letter-spacing:-.2px}
+.quiz-pill:hover{border-color:var(--red);color:var(--red);background:#FFF5F5}
+.quiz-pill.sel{border-color:var(--red);color:var(--red);background:#FFF5F5}
+.quiz-err-msg{font-size:12px;color:var(--red);min-height:16px;margin-bottom:10px;opacity:0;transition:opacity .15s}
+.quiz-err-msg.visible{opacity:1}
+.quiz-btn-row{display:flex;align-items:center;gap:10px;margin-top:6px;opacity:0;animation:fadeUp .35s .25s ease forwards}
+.quiz-confirm-btn{background:var(--red);color:#fff;border:none;border-radius:10px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;transition:background .12s,transform .08s,box-shadow .12s;box-shadow:0 2px 8px rgba(214,63,63,.25)}
+.quiz-confirm-btn:hover{background:var(--red-dk);transform:translateY(-1px);box-shadow:0 4px 14px rgba(214,63,63,.30)}
+.quiz-confirm-btn:active{transform:translateY(0);box-shadow:none}
+.quiz-back-btn-inline{background:#F3F4F6;border:none;border-radius:10px;padding:14px 22px;font-size:14px;font-weight:500;color:var(--text4);cursor:pointer;font-family:inherit;transition:background .12s,color .12s}
+.quiz-back-btn-inline:hover{background:#E5E7EB;color:var(--text2)}
+.quiz-sector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;opacity:0;animation:fadeUp .35s .15s ease forwards}
+@media(max-width:420px){.quiz-sector-grid{grid-template-columns:1fr}}
+.quiz-sector-card{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1.5px solid var(--bd);border-radius:10px;background:#fff;cursor:pointer;font-family:inherit;transition:all .12s;text-align:left}
+.quiz-sector-card:hover{border-color:var(--red);background:#FFF5F5}
+.quiz-sector-card.sel{border-color:var(--red);background:#FFF5F5}
+.quiz-sector-icon{font-size:22px;flex-shrink:0}
+.quiz-sector-lbl{font-size:13px;font-weight:600;color:var(--text);line-height:1.2}
+.quiz-sector-desc{font-size:10.5px;color:var(--text3);margin-top:2px;line-height:1.4}
+
+/* ── RESULTS LAYOUT ── */
+.results-layout{display:grid;grid-template-columns:190px 1fr;gap:16px;align-items:start}
+@media(max-width:720px){.results-layout{grid-template-columns:1fr}}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--sh-sm)}
+.sb-section-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:12px}
+.sb-sector-badge{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--r-sm);margin-bottom:14px;font-size:12px;font-weight:600;color:#92400E}
+.sb-sector-badge .sbi{font-size:14px}
+.ig{margin-bottom:10px}
+.ig:last-child{margin-bottom:0}
+.ig label{display:block;font-size:11px;font-weight:500;color:var(--text4);margin-bottom:4px}
+.ig-row{display:flex;align-items:center;gap:0;border:1.5px solid var(--bd);border-radius:var(--r-sm);overflow:hidden;background:#fff}
+.ig-row:focus-within{border-color:var(--red)}
+.ig input[type=number]{flex:1;padding:7px 8px;border:none;font-size:12.5px;font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--text);background:transparent;outline:none;-moz-appearance:textfield;min-width:0}
+.ig input[type=number]::-webkit-inner-spin-button{opacity:.3}
+.ig-sfx{font-size:11px;color:var(--text3);padding:0 8px 0 0;white-space:nowrap;background:transparent;font-weight:500}
+
+.adv-divider{height:1px;background:var(--bd);margin:14px 0}
+.adv-block{background:#F0F4FB;border:1.5px solid #D4DEF5;border-radius:var(--r-sm);overflow:hidden}
+.adv-header{display:flex;align-items:flex-start;gap:8px;padding:10px 11px;cursor:pointer;user-select:none}
+.adv-header-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.adv-header-text{}
+.adv-header-title{font-size:11.5px;font-weight:700;color:#1e3a8a}
+.adv-header-desc{font-size:10px;color:#4B6BAB;line-height:1.45;margin-top:2px}
+.adv-chevron{margin-left:auto;color:#4B6BAB;flex-shrink:0;transition:transform .2s}
+.adv-chevron.open{transform:rotate(180deg)}
+.adv-body{display:none;padding:0 11px 11px;border-top:1px solid #D4DEF5}
+.adv-body.open{display:block}
+.adv-body .ig{margin-top:10px;margin-bottom:0}
+.adv-body .ig:not(:last-child){margin-bottom:8px}
+.adv-body .ig-row{background:#fff}
+.adv-body .ig label{color:#1e3a8a;opacity:.8}
+.adv-body .ig select{width:100%;padding:7px 28px 7px 8px;border:none;font-size:11.5px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--text);background:transparent;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.ig-row-select{border:1.5px solid var(--bd);border-radius:var(--r-sm);background:#fff;overflow:hidden}
+.ig-row-select:focus-within{border-color:var(--red)}
+.mat-impact{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500}
+.mat-impact.unset{background:rgba(255,255,255,.7);color:var(--text3);border:1px dashed #D4DEF5}
+.mat-impact.low{background:#FEF9EC;color:#92400e;border:1px solid #FDE68A}
+.mat-impact.med{background:#fff;color:#1e3a8a;border:1px solid #bcd0f7}
+.mat-impact.high{background:var(--green-lt);color:#14532d;border:1px solid var(--green-bd)}
+.adv-subsection-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--crimson);margin:12px 0 6px;display:flex;align-items:center;gap:5px}
+.adv-body .bc-inp{background:#FFF5F5!important}
+.bc-preview{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500;background:var(--crimson-lt);color:var(--crimson);border:1px solid var(--crimson-bd);display:none}
+.bc-preview.visible{display:block}
+.jml-preview{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500;background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-bd);display:none}
+.jml-preview.visible{display:block}
+
+/* ── MAIN COLUMN ── */
+.main-col{display:flex;flex-direction:column;gap:14px}
+
+.hero-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:32px 28px 24px;box-shadow:var(--sh-sm);text-align:center}
+.hero-pill{display:inline-flex;align-items:center;background:var(--lt);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:10.5px;font-weight:700;color:var(--text4);letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px}
+.hero-numbers{display:flex;align-items:baseline;justify-content:center;gap:16px;margin-bottom:20px}
+.hero-num-low{font-size:3.4rem;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;color:#94A3B8;transition:opacity .15s}
+.hero-num-high{font-size:3.4rem;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;color:var(--text);transition:opacity .15s}
+.hero-dash{font-size:2.2rem;font-weight:300;color:var(--bd);flex-shrink:0}
+
+.roi-row{display:flex;gap:0;border:1.5px solid var(--bd);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;background:var(--lt)}
+.roi-item{flex:1;padding:10px 6px;text-align:center;position:relative;cursor:pointer}
+.roi-item:not(:last-child){border-right:1.5px solid var(--bd)}
+.roi-item.active{background:#fff;box-shadow:inset 0 -2px 0 var(--text)}
+.roi-item-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
+.roi-item.active .roi-item-lbl{color:var(--text4)}
+.roi-item-pct{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-1px;line-height:1}
+.roi-item-sub{font-size:9.5px;color:var(--text3);margin-top:2px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}}
+
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)}
+.card-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:14px}
+
+.pb-big{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.pb-num{font-size:52px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--red);line-height:1}
+.pb-label-block{}
+.pb-label{font-size:14px;font-weight:600;color:var(--text2);line-height:1.2}
+.pb-sub{font-size:11px;color:var(--text3);line-height:1.1}
+.pb-track{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.pb-fill{height:100%;background:var(--red);border-radius:2px;transition:width .4s ease}
+
+.chart-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.chart-legend{display:flex;align-items:center;font-size:10.5px;color:var(--text3)}
+.ld{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
+
+.fi-badge{display:inline-flex;align-items:center;background:var(--orange-lt);border:1px solid var(--orange-bd);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--orange);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+.ba-tbl{width:100%;border-collapse:collapse}
+.ba-tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:0 8px 10px;text-align:right;border-bottom:1.5px solid var(--bd)}
+.ba-tbl th:first-child{text-align:left;padding-left:0}
+.ba-tbl td{padding:9px 8px;font-size:12px;border-bottom:1px solid var(--lt);vertical-align:middle}
+.ba-tbl td:first-child{color:var(--text2);padding-left:0;font-weight:500}
+.ba-tbl td:not(:first-child){text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:500}
+.ba-tbl td.after{color:var(--green);font-weight:700}
+.ba-tbl td.diff-pos{font-weight:700;color:var(--red)}
+.ba-tbl td.diff-neg{font-weight:700;color:var(--red)}
+.ba-tbl td.diff-na{color:var(--text3);font-weight:400}
+.ba-tbl tr.sum-row td{border-bottom:none;font-weight:700;padding-top:12px;border-top:1.5px solid var(--bd)}
+.ba-tbl tr.section-row td{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text4);padding-top:14px;padding-bottom:4px;border-bottom:none;background:none;padding-left:0}
+.ba-tbl tr.section-row.section-jml td{color:var(--teal)}
+.ba-tbl tr.section-row.section-bc td{color:var(--crimson)}
+.bm{font-size:10.5px;color:var(--text3);line-height:1.65;padding:10px 0 2px;border-top:1px solid var(--bd);margin-top:4px}
+
+.cta{background:var(--red);border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+@media(max-width:600px){.cta{flex-direction:column;align-items:flex-start}}
+.cta-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:-.2px;line-height:1.2}
+.cta-sub{font-size:12px;color:rgba(255,255,255,.6);line-height:1.5}
+.cta-btn{background:#fff;color:var(--red);border:none;border-radius:var(--r-sm);padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .12s;text-decoration:none;display:inline-block}
+.cta-btn:hover{opacity:.88}
+
+.print-only{display:none}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important}
+  .app-header,.app-nav{display:none!important}
+  .quiz-page{display:none!important}
+  .sidebar{display:none!important}
+  .results-layout{display:block!important}
+  .main-col{display:block!important}
+  .cta{display:none!important}
+  .card,.hero-card{box-shadow:none!important;border:1px solid #ddd!important;break-inside:avoid;margin-bottom:10pt}
+  .print-only{display:block!important;margin-bottom:14pt}
+  @page{margin:.75in;size:letter portrait}
+}
+.print-only-table{width:100%;border-collapse:collapse;font-size:11pt}
+.print-only-table td{padding:4pt 8pt;border:1px solid #ddd;vertical-align:top}
+.print-only-table td:first-child{color:#4B5563;font-weight:500;background:#f8f9fa;width:45%}
+.print-only-table td:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ── CURRENCY ─────────────────────────────────────────────────────────────────
+const CUR={
+  USD:{rate:1,   locale:'en-US',sym:'$'},
+  EUR:{rate:0.92,locale:'de-DE',sym:'€'},
+  GBP:{rate:0.79,locale:'en-GB',sym:'£'},
+  CZK:{rate:23.5,locale:'cs-CZ',sym:'Kč'},
+};
+function fmt(usd){
+  const c=CUR[S.cur],v=usd*c.rate;
+  if(S.cur==='CZK')return Math.round(v).toLocaleString('cs-CZ')+'\u202fKč';
+  return new Intl.NumberFormat(c.locale,{style:'currency',currency:S.cur,maximumFractionDigits:0}).format(v);
+}
+function fmtAx(usd){
+  const v=usd*CUR[S.cur].rate;
+  if(v>=1e6)return (v/1e6).toFixed(1)+'M';
+  if(v>=1e3)return Math.round(v/1e3)+'K';
+  return Math.round(v).toString();
+}
+function fmtPill(val,isHourly){
+  if(isHourly){
+    const sym=CUR[S.cur].sym;
+    if(S.cur==='CZK') return Math.round(val)+' Kč';
+    return sym+val;
+  }
+  return val.toLocaleString('en-US').replace(/,/g,' ');
+}
+
+// ── ALVAO PRICING (USD, list price before discount) ──
+const ALVAO_AGENT_LIST_USD  = 63;    // $63 / agent / month
+const ALVAO_DEVICE_LIST_USD = 2.25;  // $2.25 / device / month
+const ALVAO_DISCOUNT        = 0.30;  // 30 % discount
+const ALVAO_AGENT_USD  = ALVAO_AGENT_LIST_USD  * (1 - ALVAO_DISCOUNT); // $44.10
+const ALVAO_DEVICE_USD = ALVAO_DEVICE_LIST_USD * (1 - ALVAO_DISCOUNT); // $1.575
+
+// ── MATURITY LEVELS ──
+const MATURITY_LEVELS=[
+  {val:1.01,lbl:'Low – Reactive (no processes, no CMDB)',cls:'low',note:'RF ×1.01 · basic adoption · +1% uplift'},
+  {val:1.17,lbl:'Medium – Standardized (defined processes)',cls:'med',note:'RF ×1.17 · standard adoption · +17% uplift'},
+  {val:1.34,lbl:'High – Optimized (automation, governance)',cls:'high',note:'RF ×1.34 · full adoption · +34% uplift'},
+];
+function getMaturityCfg(val){
+  if(val===null||val===undefined||val==='')
+    return{val:null,lbl:'Not specified',cls:'unset',note:'RF not applied — base estimate.'};
+  return MATURITY_LEVELS.find(m=>m.val===val)||MATURITY_LEVELS[1];
+}
+function getMttrReduction(maturityVal){
+  if(maturityVal===1.01)return 0.35;
+  if(maturityVal===1.34)return 0.10;
+  return 0.20;
+}
+
+// ── SECTOR CONFIG ──
+const SECTORS={
+  Finance:{icon:'🏦',label:'Finance',desc:'Banks, insurance, fintech',
+    modifiers:{itsm:0.97,lic:0.99,inv:1.02,itam:0.98},unusedLicDefault:35,
+    tierSplit:{l1:0.70,l2:0.22,l3:0.08},
+    insight:'Strict regulatory audits drive high SAM savings.'},
+  Manufacturing:{icon:'🏭',label:'Manufacturing',desc:'Industrial, OT/IT environments',
+    modifiers:{itsm:0.90,lic:0.71,inv:1.27,itam:1.19},unusedLicDefault:25,
+    tierSplit:{l1:0.68,l2:0.23,l3:0.09},
+    insight:'Large hardware asset fleets create extreme inventory overhead.'},
+  Public:{icon:'🏛️',label:'Public Sector',desc:'Government, municipalities',
+    modifiers:{itsm:1.05,lic:0.61,inv:0.85,itam:0.94},unusedLicDefault:20,
+    tierSplit:{l1:0.75,l2:0.18,l3:0.07},
+    insight:'Legacy processes mean the largest ITSM efficiency jumps.'},
+  Nonprofit:{icon:'🤝',label:'Nonprofit',desc:'NGOs, charities, foundations',
+    modifiers:{itsm:0.82,lic:0.44,inv:0.72,itam:0.68},unusedLicDefault:15,
+    tierSplit:{l1:0.80,l2:0.15,l3:0.05},
+    insight:'Every dollar reclaimed has high budget impact in lean organizations.'},
+  Tech:{icon:'💻',label:'Tech',desc:'SaaS, IT services, software',
+    modifiers:{itsm:0.82,lic:0.85,inv:0.72,itam:0.85},unusedLicDefault:30,
+    tierSplit:{l1:0.60,l2:0.28,l3:0.12},
+    insight:'Small efficiency gains compound significantly for senior engineers.'},
+  Retail:{icon:'🛒',label:'Retail',desc:'E-commerce, brick & mortar',
+    modifiers:{itsm:0.99,lic:0.99,inv:0.85,itam:1.02},unusedLicDefault:35,
+    tierSplit:{l1:0.82,l2:0.13,l3:0.05},
+    insight:'High turnover generates enormous onboarding/offboarding ticket volume.'},
+  Healthcare:{icon:'🏥',label:'Healthcare',desc:'Hospitals, clinics, pharma',
+    modifiers:{itsm:0.92,lic:0.71,inv:1.02,itam:1.11},unusedLicDefault:25,
+    tierSplit:{l1:0.72,l2:0.20,l3:0.08},
+    insight:'Device availability is mission-critical.'},
+};
+
+// ── CONFIDENCE LEVELS ──
+const CONFIDENCE={
+  low:{label:'Conservative',itsmMult:0.80,licMult:0.75,invMult:0.75,itamMult:0.75,
+    ramp:[0.15,0.50,0.80,1.00,1.07],color:'#94A3B8',bcMult:0.80,
+    desc:'Cautious adoption, partial rollout, limited change management'},
+  med:{label:'Realistic',itsmMult:1.00,licMult:1.00,invMult:1.00,itamMult:1.00,
+    ramp:[0.15,0.50,0.80,1.00,1.07],color:'#1B4DCC',bcMult:1.00,
+    desc:'Standard ALVAO deployment with active change management'},
+  high:{label:'Optimistic',itsmMult:1.30,licMult:1.40,invMult:1.45,itamMult:1.45,
+    ramp:[0.15,0.50,0.80,1.00,1.07],color:'#1A7F4B',bcMult:1.40,
+    desc:'Full adoption, strong governance, proactive optimization (Forrester upper quartile)'},
+};
+
+// ── QUIZ ──
+const HOURLY_DEF={USD:35,EUR:32,GBP:30,CZK:550};
+const HOURLY_QUICK={
+  USD:[20,30,35,50,70,95],
+  EUR:[18,25,32,45,65,85],
+  GBP:[16,22,30,42,60,80],
+  CZK:[300,400,550,750,1000,1400],
+};
+
+const QS=[
+  {id:'segment',type:'sector',cat:'Industry',
+    q:'What industry is your organization in?',
+    hint:'Your sector determines benchmark multipliers for ITSM efficiency and license waste.'},
+  {id:'users',type:'number',cat:'Team size',
+    q:'How many employees does your organization have?',
+    hint:'Total headcount. Used to calculate End-User Productivity savings.',
+    unit:'people',quickPicks:[50,200,500,800,1000,2000,5000],inpStep:10,min:1},
+  {id:'agents',type:'number',cat:'Support team',
+    q:'How many IT help desk staff do you have?',
+    hint:'Resolvers who handle tickets — L1, L2, and L3 combined.',
+    unit:'staff',quickPicks:[2,5,10,20,50],inpStep:1,min:1},
+  {id:'monthlyTickets',type:'number',cat:'Support load',
+    q:'How many tickets does your team handle per month?',
+    hint:'Average monthly volume of IT support tickets across all channels.',
+    unit:'tickets / month',quickPicks:[500,750,1000,1800,3500,6000],inpStep:50,min:1},
+  {id:'hourlyCost',type:'hourly',cat:'Agent cost',
+    q:'What is the fully-loaded hourly cost per IT agent?',
+    hint:'Include salary, benefits, overhead. If unsure, use gross annual salary ÷ working hours (≈1 760 hrs/yr).',
+    inpStep:1,min:1},
+  {id:'endpoints',type:'number',cat:'Asset inventory',
+    q:'How many devices does IT manage?',
+    hint:'Desktops, laptops, servers, mobile devices — everything under IT\'s management.',
+    unit:'devices',quickPicks:[200,500,850,2000,5000],inpStep:50,min:0},
+];
+
+// ── STATE ──
+let S={
+  cur:'USD',phase:'quiz',step:0,confidence:'med',err:'',advOpen:true,
+  inp:{
+    segment:'',users:'',agents:'',hourlyCost:'',
+    monthlyTickets:'',emailTickets:50,endpoints:'',
+    inventoryHours:0,maturity:null,ticketRatio:null,
+    onboardingVolume:'',majorIncidents:'',hourlyDowntimeCost:'',
+  }
+};
+
+// ── COMPUTE ──
+function computeFor(conf){
+  const a=S.inp;
+  const seg=a.segment||'Tech';
+  const segCfg=SECTORS[seg]||SECTORS['Tech'];
+  const m=segCfg.modifiers;
+  const cl=CONFIDENCE[conf];
+  const users=Math.max(1,parseFloat(a.users)||350);
+  const agents=Math.max(1,parseFloat(a.agents)||5);
+
+  const hcInCur=Math.max(1,parseFloat(a.hourlyCost)||HOURLY_DEF[S.cur]);
+  const hrRate=hcInCur/CUR[S.cur].rate; // USD per hour
+
+  const emailPct=Math.max(0,Math.min(100,parseFloat(a.emailTickets)||50));
+  const invHrs=Math.max(0,parseFloat(a.inventoryHours)||0);
+  const endpts=Math.max(0,parseFloat(a.endpoints)||0);
+  const inputTickets=parseFloat(a.monthlyTickets)||0;
+  const storedRatio=parseFloat(a.ticketRatio)||0.5;
+  const mTix=Math.max(1,inputTickets>0?inputTickets:users*storedRatio);
+  const ticketsDynamic=(inputTickets===0);
+
+  const PRF=conf==='low'?0.10:conf==='high'?0.20:0.15;
+
+  const maturitySet=(a.maturity!==null&&a.maturity!==undefined&&a.maturity!=='');
+  const maturityRF=maturitySet?parseFloat(a.maturity):1.0;
+  const matCfg=getMaturityCfg(maturitySet?a.maturity:null);
+
+  // Dynamic tier split by sector + small-team adjustment
+  const tier=segCfg.tierSplit;
+  const l1adj=agents<5?Math.min(tier.l1+0.10,0.90):tier.l1;
+  const l2adj=agents<5?tier.l2*0.75:tier.l2;
+  const l3adj=Math.max(0,1-l1adj-l2adj);
+
+  const avgHandleMin=20*l1adj+40*l2adj+75*l3adj;
+  const directCPT=(avgHandleMin/60)*hrRate;
+  const avgCPT=directCPT*1.30;
+
+  const annTix=mTix*12;
+  const annTicketCost=annTix*avgCPT;
+
+  const itsmBase=conf==='low'?0.18:conf==='high'?0.30:0.22;
+  const itsmGain=Math.min(itsmBase*m.itsm,0.60);
+  // FIX 4: agent-labor-pool model — savings now scale with agent count.
+  // Old: itsmSavings=annTicketCost*itsmGain (ticket volume fixed → ROI fell as agents grew)
+  // New: each agent saves itsmGain% of their annual labor cost → cost & savings scale together.
+  // avgCPT/annTicketCost kept only for the cost-per-ticket reference row in the table.
+  const totalAgentCostAnn=agents*hrRate*1760;
+  const itsmSavings=totalAgentCostAnn*itsmGain*maturityRF;
+
+  // ── FIX 1 & 2: tier-weighted wait time; waitReduction range tightened ──
+  // avgWaitHrs is now a tier-weighted constant (L1≈1.5h, L2≈4h, L3≈10h)
+  // waitReduction narrowed from 0.30/0.40/0.55 → 0.25/0.35/0.45
+  const avgWaitHrs=l1adj*1.5+l2adj*4.0+l3adj*10.0;
+  const waitReduction=conf==='low'?0.25:conf==='high'?0.45:0.35;
+  const endUserHrRate=hrRate*0.65;
+  const ticketsPerUser=annTix/users;
+  const userProductivityROI=users*ticketsPerUser*avgWaitHrs*waitReduction*endUserHrRate*PRF*maturityRF;
+
+  const channelSavings=annTix*(emailPct/100)*0.40*(
+    (22/60)*hrRate-(12/60)*hrRate
+  )*m.itsm*cl.itsmMult*PRF*maturityRF;
+
+  const unusedLicPct=conf==='low'?8:conf==='high'?18:12;
+  const unusedLicCount=users*(unusedLicPct/100);
+  const licWaste=unusedLicCount*120;
+  const licRecovery=Math.min(0.78*m.lic*cl.licMult,0.90);
+  const licSavings=licWaste*licRecovery*maturityRF;
+
+  const annualDeviceCost=1200;
+  // ── FIX 3: ITAM rate tightened — Forrester/Gartner max 3–5% TCO ──
+  // was: 0.01 / 0.02 / 0.08 (8× spread)
+  // now: 0.015 / 0.025 / 0.040 (2.7× spread, capped at 4%)
+  const itamRate=conf==='low'?0.015:conf==='high'?0.040:0.025;
+  const itamSavings=endpts*annualDeviceCost*itamRate*m.itam*cl.itamMult*maturityRF;
+
+  const invLaborUSD=invHrs*12*hrRate;
+  const invRecovery=Math.min(0.65*m.inv*cl.invMult,0.85);
+  const invSavings=invLaborUSD*invRecovery*PRF*maturityRF;
+
+  const onboardingVolumeRaw=parseFloat(a.onboardingVolume);
+  const onboardingIsAuto=(isNaN(onboardingVolumeRaw)||a.onboardingVolume==='');
+  const onboardingVolume=onboardingIsAuto?Math.round(users*0.15):Math.max(0,onboardingVolumeRaw);
+  const jmlEvents=onboardingVolume*2;
+  const jmlAdminMult=conf==='low'?0.70:conf==='high'?1.20:1.00;
+  const jmlAdminSavings=jmlEvents*4*hrRate*jmlAdminMult*maturityRF;
+  const jmlProductivitySavings=onboardingVolume*6*endUserHrRate*PRF*maturityRF;
+  const onboardingTotal=jmlAdminSavings+jmlProductivitySavings;
+
+  const majorIncidentsRaw=parseFloat(a.majorIncidents);
+  const hourlyDowntimeCostRaw=parseFloat(a.hourlyDowntimeCost);
+  const bcActive=(!isNaN(majorIncidentsRaw)&&majorIncidentsRaw>0&&!isNaN(hourlyDowntimeCostRaw)&&hourlyDowntimeCostRaw>0);
+  const majorIncidents=bcActive?majorIncidentsRaw:0;
+  const hourlyDowntimeCostUSD=bcActive?(hourlyDowntimeCostRaw/CUR[S.cur].rate):0;
+  const avgIncidentDuration=4;
+  const mttrReduction=getMttrReduction(maturitySet?parseFloat(a.maturity):null);
+  const downtimeSavings=bcActive?majorIncidents*avgIncidentDuration*hourlyDowntimeCostUSD*mttrReduction*cl.bcMult*maturityRF:0;
+  const totalDowntimeCostBefore=bcActive?majorIncidents*avgIncidentDuration*hourlyDowntimeCostUSD:0;
+  const totalDowntimeCostAfter=totalDowntimeCostBefore-downtimeSavings;
+
+  const annSavings=itsmSavings+userProductivityROI+channelSavings+licSavings+itamSavings+invSavings+onboardingTotal+downtimeSavings;
+
+  // ── ALVAO PRICING: actual prices with 30% discount ──
+  const agentsForPricing=agents;
+  const alvaoAnn=agentsForPricing*ALVAO_AGENT_USD*12 + endpts*ALVAO_DEVICE_USD*12;
+  const alvaoImpl=alvaoAnn*0.40;
+
+  const ramp=[0.15,0.50,0.80,1.00,1.07];
+  const annualAgentCostUSD=hrRate*1760;
+  const maintenanceCost=annualAgentCostUSD*0.15;
+  const adminOverheadCost=annualAgentCostUSD*0.18;
+  const yrData=ramp.map((r,i)=>({yr:i+1,sav:annSavings*r,cost:alvaoAnn+maintenanceCost+adminOverheadCost+(i===0?alvaoImpl:0)}));
+  const cum5sav=yrData.reduce((s,y)=>s+y.sav,0);
+  const cum5cost=yrData.reduce((s,y)=>s+y.cost,0);
+  const roi5=cum5cost>0?(cum5sav-cum5cost)/cum5cost*100:0;
+  const payback=annSavings*ramp[0]>0?Math.min(60,Math.ceil((alvaoAnn+alvaoImpl)/(annSavings*ramp[0]/12))):99;
+
+  return{
+    conf,hrRate,hcInCur,
+    l1adj,l2adj,l3adj,avgHandleMin,
+    avgCPT,avgCPTAfter:avgCPT*(1-itsmGain),
+    annTix,annTicketCost,annTicketCostAfter:annTicketCost*(1-itsmGain),
+    totalAgentCostAnn,totalAgentCostAnnAfter:totalAgentCostAnn*(1-itsmGain),
+    licWaste,licWasteAfter:licWaste*(1-licRecovery),
+    itsmSavings,userProductivityROI,channelSavings,licSavings,itamSavings,invSavings,
+    onboardingVolume,onboardingIsAuto,jmlEvents,jmlAdminSavings,jmlProductivitySavings,onboardingTotal,
+    bcActive,majorIncidents,hourlyDowntimeCostUSD,avgIncidentDuration,mttrReduction,
+    totalDowntimeCostBefore,totalDowntimeCostAfter,downtimeSavings,
+    annSavings,alvaoAnn,alvaoImpl,maintenanceCost,adminOverheadCost,yrData,cum5sav,cum5cost,roi5,payback,
+    users,agents,agentsForPricing,
+    agentMonthlyUSD:ALVAO_AGENT_USD,deviceMonthlyUSD:ALVAO_DEVICE_USD,
+    mTix,unusedLicPct,unusedLicCount,invHrs,emailPct,endpts,annualDeviceCost:1200,
+    ticketsDynamic,seg,segCfg,maturitySet,maturityRF,matCfg,
+    itsmGainPct:Math.round(itsmGain*100),
+    ticketsPerUser:annTix/users,
+    avgWaitHrs:avgWaitHrs,
+    waitReduction:waitReduction,
+  };
+}
+function compute(){return computeFor(S.confidence);}
+function computeAll(){return{low:computeFor('low'),med:computeFor('med'),high:computeFor('high')};}
+
+// ── SVG CHART ──
+function mkChart(r){
+  const bars=[...r.yrData.map(y=>({lbl:'Year '+y.yr,val:y.sav,tot:false})),
+               {lbl:'Total',val:r.cum5sav,tot:true}];
+  const maxV=Math.max(...bars.map(b=>b.val))*1.2||1;
+  const W=340,H=160,pL=44,pR=8,pT=16,pB=28;
+  const cW=W-pL-pR,cH=H-pT-pB;
+  const slot=cW/bars.length,bW=slot*0.54;
+  const ns='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.style.cssText='width:100%;height:auto;display:block;overflow:visible';
+  for(let i=0;i<=4;i++){
+    const v=maxV*i/4,y=pT+cH*(1-i/4);
+    const ln=document.createElementNS(ns,'line');
+    ln.setAttribute('x1',pL);ln.setAttribute('x2',W-pR);ln.setAttribute('y1',y);ln.setAttribute('y2',y);
+    ln.setAttribute('stroke',i===0?'#CBD5E1':'#F1F5F9');ln.setAttribute('stroke-width','1');svg.appendChild(ln);
+    if(i>0){
+      const tl=document.createElementNS(ns,'text');
+      tl.setAttribute('x',pL-4);tl.setAttribute('y',y+3);tl.setAttribute('text-anchor','end');
+      tl.setAttribute('font-size','8');tl.setAttribute('fill','#9CA3AF');
+      tl.setAttribute('font-family','IBM Plex Mono,monospace');tl.textContent=fmtAx(v);svg.appendChild(tl);
+    }
+  }
+  const barColor=CONFIDENCE[r.conf].color;
+  bars.forEach((b,i)=>{
+    const bH=Math.max(2,(b.val/maxV)*cH);
+    const x=pL+i*slot+(slot-bW)/2,y=pT+cH-bH;
+    const fill=b.tot?'#D63F3F':barColor;
+    const rect=document.createElementNS(ns,'rect');
+    rect.setAttribute('x',x);rect.setAttribute('y',y);rect.setAttribute('width',bW);rect.setAttribute('height',bH);
+    rect.setAttribute('rx','3');rect.setAttribute('fill',fill);
+    if(!b.tot)rect.setAttribute('opacity','0.85');svg.appendChild(rect);
+    if(b.val>maxV*0.06){
+      const vt=document.createElementNS(ns,'text');
+      vt.setAttribute('x',x+bW/2);vt.setAttribute('y',y-3);vt.setAttribute('text-anchor','middle');
+      vt.setAttribute('font-size','7.5');vt.setAttribute('fill',fill);
+      vt.setAttribute('font-family','IBM Plex Mono,monospace');vt.setAttribute('font-weight','600');
+      vt.textContent=fmtAx(b.val);svg.appendChild(vt);
+    }
+    const xl=document.createElementNS(ns,'text');
+    xl.setAttribute('x',x+bW/2);xl.setAttribute('y',H-pB+12);xl.setAttribute('text-anchor','middle');
+    xl.setAttribute('font-size','8');xl.setAttribute('fill','#9CA3AF');
+    xl.setAttribute('font-family','IBM Plex Sans,sans-serif');xl.textContent=b.lbl;svg.appendChild(xl);
+  });
+  return svg;
+}
+
+// ── DOM HELPERS ──
+function el(t,c){const e=document.createElement(t);if(c)e.className=c;return e;}
+function tx(t,c,s){const e=el(t,c);e.textContent=s;return e;}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('root');
+  root.innerHTML='';
+
+  const hdr=el('div','app-header');
+  const hl=el('div','header-left');
+  const lm=el('div','logo-mark');lm.textContent='R';hl.appendChild(lm);
+  const lt=el('div');
+  lt.appendChild(tx('div','logo-title','ROI Calculator'));
+  lt.appendChild(tx('div','logo-sub','Financial Impact Report'));
+  hl.appendChild(lt);hdr.appendChild(hl);
+
+  const hr=el('div','header-right');
+  const cw=el('div','cur-wrap');
+  const sel=document.createElement('select');sel.className='cur-sel';
+  ['USD','EUR','GBP','CZK'].forEach(c=>{
+    const o=document.createElement('option');o.value=c;o.textContent=c+' ('+CUR[c].sym+')';
+    if(c===S.cur)o.selected=true;sel.appendChild(o);
+  });
+  sel.onchange=e=>{
+    const old=S.cur;S.cur=e.target.value;
+    if(S.inp.hourlyCost!==''&&S.inp.hourlyCost!==null){
+      S.inp.hourlyCost=Math.round((parseFloat(S.inp.hourlyCost)/CUR[old].rate)*CUR[S.cur].rate);
+    }
+    if(S.inp.hourlyDowntimeCost!==''&&S.inp.hourlyDowntimeCost!==null){
+      S.inp.hourlyDowntimeCost=Math.round((parseFloat(S.inp.hourlyDowntimeCost)/CUR[old].rate)*CUR[S.cur].rate);
+    }
+    render();
+  };
+  cw.appendChild(sel);hr.appendChild(cw);
+
+  if(S.phase==='results'){
+    const exp=el('button','export-btn');
+    exp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
+    exp.onclick=()=>{document.title='ALVAO ROI Analysis';window.print();};
+    hr.appendChild(exp);
+  }
+  hdr.appendChild(hr);root.appendChild(hdr);
+
+  if(S.phase==='results'){
+    const nav=el('div','app-nav');
+    const nl=el('div','nav-left');
+    const bk=el('button','btn-retake');
+    bk.innerHTML='← Retake quiz';
+    bk.onclick=()=>{S.phase='quiz';S.step=0;S.err='';render();};
+    nl.appendChild(bk);nav.appendChild(nl);
+    nav.appendChild(el('div','nav-right'));
+    root.appendChild(nav);
+  }
+
+  const wrap=el('div','wrap');
+  if(S.phase==='quiz'){
+    root.appendChild(mkQuizPage());
+  } else {
+    wrap.appendChild(mkResultsPage());
+    root.appendChild(wrap);
+  }
+}
+
+// ── QUIZ PAGE ─────────────────────────────────────────────────────────────────
+function mkQuizPage(){
+  const q=QS[S.step],total=QS.length;
+  const page=el('div','quiz-page');
+
+  const segs=el('div','quiz-segs');
+  for(let i=0;i<total;i++){
+    const seg=el('div','quiz-seg');
+    if(i<S.step)seg.classList.add('done');
+    else if(i===S.step)seg.classList.add('active');
+    segs.appendChild(seg);
+  }
+  page.appendChild(segs);
+
+  const content=el('div','quiz-content');
+  content.appendChild(tx('div','quiz-qlbl',
+    'Q'+String(S.step+1).padStart(2,'0')+' / '+String(total).padStart(2,'0')+' · '+q.cat
+  ));
+  content.appendChild(tx('div','quiz-qh',q.q));
+  if(q.hint) content.appendChild(tx('div','quiz-qhint',q.hint));
+
+  const errMsg=tx('div','quiz-err-msg',S.err||'');
+  errMsg.id='quiz-err-msg';
+  if(S.err)errMsg.classList.add('visible');
+
+  if(q.type==='sector'){
+    const grid=el('div','quiz-sector-grid');
+    Object.entries(SECTORS).forEach(([key,cfg])=>{
+      const card=el('button','quiz-sector-card');
+      if(S.inp.segment===key)card.classList.add('sel');
+      const icon=tx('span','quiz-sector-icon',cfg.icon);
+      const info=el('div');
+      info.appendChild(tx('div','quiz-sector-lbl',cfg.label));
+      info.appendChild(tx('div','quiz-sector-desc',cfg.desc));
+      card.appendChild(icon);card.appendChild(info);
+      card.onclick=()=>{
+        S.inp.segment=key;S.err='';
+        document.querySelectorAll('.quiz-sector-card').forEach(c=>c.classList.remove('sel'));
+        card.classList.add('sel');
+        const em=document.getElementById('quiz-err-msg');
+        if(em){em.textContent='';em.classList.remove('visible');}
+      };
+      grid.appendChild(card);
+    });
+    content.appendChild(grid);
+    content.appendChild(errMsg);
+
+  } else {
+    const isHourly=(q.type==='hourly');
+    const unitStr=isHourly?(CUR[S.cur].sym+' / hour'):(q.unit||'');
+    const unitParts=unitStr.includes('/')?[
+      unitStr.split('/')[0].trim()+' /',
+      unitStr.split('/')[1].trim()
+    ]:[unitStr];
+
+    const nbox=el('div','quiz-nbox');
+    nbox.onclick=()=>{const inp=nbox.querySelector('.quiz-ninput');if(inp)inp.focus();};
+
+    const ninput=document.createElement('input');
+    ninput.type='number';
+    ninput.className='quiz-ninput';
+    ninput.id='quiz-number-input';
+    ninput.min=q.min!==undefined?q.min:0;
+    if(q.max!==undefined)ninput.max=q.max;
+    ninput.step=q.inpStep||1;
+
+    const curVal=S.inp[q.id];
+    if(curVal!==''&&curVal!==null&&curVal!==undefined){
+      ninput.value=curVal;
+    } else {
+      if(isHourly) ninput.placeholder=HOURLY_DEF[S.cur];
+      else if(q.quickPicks&&q.quickPicks.length) ninput.placeholder=fmtPill(q.quickPicks[Math.floor(q.quickPicks.length/2)],false);
+    }
+
+    ninput.addEventListener('input',e=>{
+      let v=parseFloat(e.target.value);
+      if(isNaN(v)){S.inp[q.id]='';return;}
+      if(q.max!==undefined&&v>q.max)v=q.max;
+      if(q.min!==undefined&&v<q.min)v=q.min;
+      S.inp[q.id]=v;
+      document.querySelectorAll('.quiz-pill').forEach(p=>{
+        p.classList.toggle('sel',parseFloat(p.dataset.val)===v);
+      });
+      const em=document.getElementById('quiz-err-msg');
+      if(em){em.textContent='';em.classList.remove('visible');}
+    });
+
+    const unitWrap=el('div','quiz-nunit');
+    const arrCol=el('div','quiz-narr-col');
+    const upBtn=el('button','quiz-narr');upBtn.innerHTML='&#9650;';upBtn.type='button';
+    upBtn.onclick=e=>{
+      e.stopPropagation();
+      let v=parseFloat(ninput.value)||0;v+=(q.inpStep||1);
+      if(q.max!==undefined&&v>q.max)v=q.max;
+      ninput.value=v;S.inp[q.id]=v;
+      document.querySelectorAll('.quiz-pill').forEach(p=>p.classList.toggle('sel',parseFloat(p.dataset.val)===v));
+    };
+    const dnBtn=el('button','quiz-narr');dnBtn.innerHTML='&#9660;';dnBtn.type='button';
+    dnBtn.onclick=e=>{
+      e.stopPropagation();
+      let v=parseFloat(ninput.value)||0;v-=(q.inpStep||1);
+      if(q.min!==undefined&&v<q.min)v=q.min;
+      ninput.value=v;S.inp[q.id]=v;
+      document.querySelectorAll('.quiz-pill').forEach(p=>p.classList.toggle('sel',parseFloat(p.dataset.val)===v));
+    };
+    arrCol.appendChild(upBtn);arrCol.appendChild(dnBtn);
+
+    const lblsWrap=el('div','quiz-nulbls');
+    unitParts.forEach(part=>{
+      lblsWrap.appendChild(tx('span','quiz-nulbl',part));
+    });
+
+    unitWrap.appendChild(arrCol);unitWrap.appendChild(lblsWrap);
+    nbox.appendChild(ninput);nbox.appendChild(unitWrap);
+    content.appendChild(nbox);
+    content.appendChild(errMsg);
+
+    const picks=isHourly?HOURLY_QUICK[S.cur]:(q.quickPicks||[]);
+    if(picks.length>0){
+      const pillRow=el('div','quiz-pills');
+      picks.forEach(v=>{
+        const pill=el('button','quiz-pill');
+        pill.type='button';pill.dataset.val=v;
+        pill.textContent=fmtPill(v,isHourly);
+        const curV=parseFloat(S.inp[q.id]);
+        if(!isNaN(curV)&&curV===v)pill.classList.add('sel');
+        pill.onclick=()=>{
+          ninput.value=v;S.inp[q.id]=v;
+          document.querySelectorAll('.quiz-pill').forEach(p=>p.classList.toggle('sel',parseFloat(p.dataset.val)===v));
+          const em=document.getElementById('quiz-err-msg');
+          if(em){em.textContent='';em.classList.remove('visible');}
+          ninput.focus();
+        };
+        pillRow.appendChild(pill);
+      });
+      content.appendChild(pillRow);
+    }
+  }
+
+  const btnRow=el('div','quiz-btn-row');
+  if(S.step>0){
+    const backBtn=el('button','quiz-back-btn-inline');
+    backBtn.type='button';backBtn.innerHTML='&#8592; Back';
+    backBtn.onclick=()=>{S.step--;S.err='';render();};
+    btnRow.appendChild(backBtn);
+  }
+  const confirmBtn=el('button','quiz-confirm-btn');
+  confirmBtn.type='button';
+  const isLast=(S.step===QS.length-1);
+  confirmBtn.innerHTML=isLast
+    ? 'Calculate ROI <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'
+    : 'Continue <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  confirmBtn.onclick=()=>tryAdvance();
+  btnRow.appendChild(confirmBtn);
+  content.appendChild(btnRow);
+  page.appendChild(content);
+
+  setTimeout(()=>{
+    const inp=document.getElementById('quiz-number-input');
+    if(inp)inp.focus();
+  },80);
+
+  return page;
+}
+
+function tryAdvance(){
+  const q=QS[S.step];
+  if(q.type==='sector'){
+    if(!S.inp.segment){
+      S.err='Please select your industry.';
+      const em=document.getElementById('quiz-err-msg');
+      if(em){em.textContent=S.err;em.classList.add('visible');}
+      return;
+    }
+  } else {
+    const val=S.inp[q.id];
+    const hasVal=(val!==''&&val!==null&&val!==undefined&&!isNaN(parseFloat(String(val))));
+    if(!hasVal){
+      S.err='Please enter a value to continue.';
+      const em=document.getElementById('quiz-err-msg');
+      if(em){em.textContent=S.err;em.classList.add('visible');}
+      const nbox=document.querySelector('.quiz-nbox');if(nbox)nbox.classList.add('has-err');
+      return;
+    }
+  }
+  S.err='';
+  if(S.step===QS.length-1){
+    const tix=parseFloat(S.inp.monthlyTickets)||0;
+    const usr=Math.max(1,parseFloat(S.inp.users)||350);
+    S.inp.ticketRatio=Math.max(0.1,Math.min(tix>0?tix/usr:0.5,5));
+    S.phase='results';render();
+  } else {
+    S.step++;render();
+  }
+}
+
+// ── SIDEBAR ──
+function mkSidebar(){
+  const sd=el('div','sidebar');
+  sd.appendChild(tx('div','sb-section-title','System Setup'));
+  const seg=SECTORS[S.inp.segment]||SECTORS['Tech'];
+  const badge=el('div','sb-sector-badge');
+  badge.appendChild(tx('span','sbi',seg.icon+' '));
+  badge.appendChild(document.createTextNode(seg.label));
+  sd.appendChild(badge);
+  const CORE=[
+    {id:'users',lbl:'Employees',sfx:'people',min:1,step:10},
+    {id:'agents',lbl:'IT help desk staff',sfx:'staff',min:1,step:1},
+    {id:'hourlyCost',lbl:'Hourly cost / agent',sfx:'__CUR__/hr',min:1,step:1},
+    {id:'monthlyTickets',lbl:'Monthly ticket volume',sfx:'/ mo',min:1,step:10},
+  ];
+  CORE.forEach(f=>{
+    const g=el('div','ig');
+    g.appendChild(tx('label','',f.lbl));
+    const row=el('div','ig-row');
+    const inp=document.createElement('input');inp.type='number';inp.min=f.min;inp.step=f.step;
+    inp.value=S.inp[f.id]!==''?S.inp[f.id]:'';inp.id='sb-inp-'+f.id;
+    inp.addEventListener('input',e=>{
+      let v=parseFloat(e.target.value)||0;
+      S.inp[f.id]=v;
+      if(f.id==='monthlyTickets'){
+        const usr=Math.max(1,parseFloat(S.inp.users)||350);
+        S.inp.ticketRatio=Math.max(0.1,Math.min(v>0?v/usr:0.5,5));
+      }
+      updateResults();
+    });
+    const sfxText=f.sfx==='__CUR__/hr'?CUR[S.cur].sym+'/hr':f.sfx;
+    row.appendChild(inp);row.appendChild(tx('span','ig-sfx',sfxText));
+    g.appendChild(row);sd.appendChild(g);
+  });
+  const divider=el('hr');divider.style.cssText='border:none;border-top:1px solid var(--bd);margin:14px 0';
+  sd.appendChild(divider);
+
+  // Advanced block
+  const advBlock=el('div','adv-block');
+  const advHdr=el('div','adv-header');
+  advHdr.appendChild(tx('span','adv-header-icon','⚙'));
+  const advHdrText=el('div','adv-header-text');
+  advHdrText.appendChild(tx('div','adv-header-title','Advanced Tuning'));
+  advHdrText.appendChild(tx('div','adv-header-desc','Adjust these parameters to reflect your specific environment and ensure maximum precision.'));
+  advHdr.appendChild(advHdrText);
+  const chevEl=el('span','adv-chevron');
+  chevEl.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  if(S.advOpen)chevEl.classList.add('open');
+  advHdr.appendChild(chevEl);
+  const advBody=el('div','adv-body');if(S.advOpen)advBody.classList.add('open');
+  advHdr.onclick=()=>{
+    S.advOpen=!S.advOpen;
+    advBody.classList.toggle('open',S.advOpen);
+    chevEl.classList.toggle('open',S.advOpen);
+  };
+  advBlock.appendChild(advHdr);
+
+  const emailG=el('div','ig');emailG.appendChild(tx('label','','Email / phone ticket share'));
+  const emailRow=el('div','ig-row');
+  const emailInp=document.createElement('input');emailInp.type='number';emailInp.min=0;emailInp.max=100;emailInp.step=5;
+  emailInp.value=S.inp.emailTickets!==''&&S.inp.emailTickets!==null?S.inp.emailTickets:50;emailInp.placeholder='50';
+  emailInp.addEventListener('input',e=>{S.inp.emailTickets=Math.min(100,parseFloat(e.target.value)||0);updateResults();});
+  emailRow.appendChild(emailInp);emailRow.appendChild(tx('span','ig-sfx','%'));emailG.appendChild(emailRow);advBody.appendChild(emailG);
+
+  const endpG=el('div','ig');endpG.appendChild(tx('label','','Managed devices (endpoints)'));
+  const endpRow=el('div','ig-row');
+  const endpInp=document.createElement('input');endpInp.type='number';endpInp.min=0;endpInp.step=10;
+  endpInp.value=S.inp.endpoints!==''?S.inp.endpoints:'';endpInp.placeholder='0';
+  endpInp.addEventListener('input',e=>{S.inp.endpoints=parseFloat(e.target.value)||0;updateResults();});
+  endpRow.appendChild(endpInp);endpRow.appendChild(tx('span','ig-sfx','#'));endpG.appendChild(endpRow);advBody.appendChild(endpG);
+
+  const matG=el('div','ig');matG.appendChild(tx('label','','Service Management Maturity'));
+  const matRow=el('div','ig-row-select');
+  const matSel=document.createElement('select');matSel.id='sb-maturity';
+  const isUnset=(S.inp.maturity===null||S.inp.maturity===undefined||S.inp.maturity==='');
+  const emptyOpt=document.createElement('option');emptyOpt.value='';emptyOpt.textContent='— Not specified';emptyOpt.selected=isUnset;matSel.appendChild(emptyOpt);
+  MATURITY_LEVELS.forEach(m=>{
+    const opt=document.createElement('option');opt.value=m.val;opt.textContent=m.lbl;
+    if(S.inp.maturity===m.val)opt.selected=true;matSel.appendChild(opt);
+  });
+  matSel.addEventListener('change',e=>{
+    S.inp.maturity=(e.target.value===''?null:parseFloat(e.target.value));
+    updateMatImpact();updateBcPreview();updateResults();
+  });
+  matRow.appendChild(matSel);matG.appendChild(matRow);
+  const matImpact=el('div','mat-impact');matImpact.id='mat-impact';
+  function updateMatImpact2(){
+    const cfg=getMaturityCfg(S.inp.maturity);
+    matImpact.className='mat-impact '+cfg.cls;matImpact.textContent=cfg.note;
+  }
+  updateMatImpact2();matG.appendChild(matImpact);advBody.appendChild(matG);
+
+  const invG=el('div','ig');invG.appendChild(tx('label','','IT inventory hrs / month'));
+  const invRow=el('div','ig-row');
+  const invInp=document.createElement('input');invInp.type='number';invInp.min=0;invInp.step=5;
+  invInp.value=S.inp.inventoryHours||'';invInp.placeholder='0';
+  invInp.addEventListener('input',e=>{S.inp.inventoryHours=parseFloat(e.target.value)||0;updateResults();});
+  invRow.appendChild(invInp);invRow.appendChild(tx('span','ig-sfx','hrs'));invG.appendChild(invRow);advBody.appendChild(invG);
+
+  const obG=el('div','ig');obG.appendChild(tx('label','','Annual hires (JML)'));
+  const obRow=el('div','ig-row');
+  const obInp=document.createElement('input');obInp.type='number';obInp.min=0;obInp.step=5;
+  const obHasVal=(S.inp.onboardingVolume!==''&&S.inp.onboardingVolume!==null);
+  obInp.value=obHasVal?S.inp.onboardingVolume:'';
+  obInp.placeholder='Auto ('+Math.round((parseFloat(S.inp.users)||350)*0.15)+')';
+  obInp.addEventListener('input',e=>{
+    const raw=e.target.value;S.inp.onboardingVolume=(raw===''?'':Math.max(0,parseFloat(raw)||0));
+    const rv=compute();const prev=document.getElementById('jml-preview');
+    if(prev){prev.textContent='JML savings: '+fmt(rv.onboardingTotal)+'/yr';prev.classList.toggle('visible',rv.onboardingTotal>0);}
+    updateResults();
+  });
+  obRow.appendChild(obInp);obRow.appendChild(tx('span','ig-sfx','hires'));obG.appendChild(obRow);
+  const initR=compute();
+  const jmlPrev=el('div','jml-preview');jmlPrev.id='jml-preview';
+  jmlPrev.textContent='JML savings: '+fmt(initR.onboardingTotal)+'/yr';
+  if(initR.onboardingTotal>0)jmlPrev.classList.add('visible');
+  obG.appendChild(jmlPrev);advBody.appendChild(obG);
+
+  const bcTitleEl=el('div','adv-subsection-title');
+  bcTitleEl.innerHTML='🔴 Business Continuity';
+  advBody.appendChild(bcTitleEl);
+  const miG=el('div','ig');miG.appendChild(tx('label','','P1/P2 Incidents / year'));
+  const miRow=el('div','ig-row');
+  const miInp=document.createElement('input');miInp.type='number';miInp.min=0;miInp.step=1;miInp.className='bc-inp';
+  miInp.value=(S.inp.majorIncidents!==''&&S.inp.majorIncidents!==null)?S.inp.majorIncidents:'';miInp.placeholder='0';
+  miInp.addEventListener('input',e=>{S.inp.majorIncidents=(e.target.value===''?'':Math.max(0,parseFloat(e.target.value)||0));updateBcPreview();updateResults();});
+  miRow.appendChild(miInp);miRow.appendChild(tx('span','ig-sfx','/ yr'));miG.appendChild(miRow);advBody.appendChild(miG);
+  const dtG=el('div','ig');dtG.appendChild(tx('label','','Hourly downtime cost'));
+  const dtRow=el('div','ig-row');
+  const dtInp=document.createElement('input');dtInp.type='number';dtInp.min=0;dtInp.step=100;dtInp.className='bc-inp';
+  dtInp.value=(S.inp.hourlyDowntimeCost!==''&&S.inp.hourlyDowntimeCost!==null)?S.inp.hourlyDowntimeCost:'';dtInp.placeholder='0';
+  dtInp.addEventListener('input',e=>{S.inp.hourlyDowntimeCost=(e.target.value===''?'':Math.max(0,parseFloat(e.target.value)||0));updateBcPreview();updateResults();});
+  dtRow.appendChild(dtInp);dtRow.appendChild(tx('span','ig-sfx',CUR[S.cur].sym+'/hr'));dtG.appendChild(dtRow);
+  const bcPrev=el('div','bc-preview');bcPrev.id='bc-preview';
+  const initBcR=compute();
+  if(initBcR.bcActive){bcPrev.textContent='Downtime savings: '+fmt(initBcR.downtimeSavings)+'/yr';bcPrev.classList.add('visible');}
+  dtG.appendChild(bcPrev);advBody.appendChild(dtG);
+  advBlock.appendChild(advBody);sd.appendChild(advBlock);
+  return sd;
+}
+function updateBcPreview(){
+  const r=compute();const prev=document.getElementById('bc-preview');if(!prev)return;
+  if(r.bcActive){prev.textContent='Downtime savings: '+fmt(r.downtimeSavings)+'/yr';prev.classList.add('visible');}
+  else prev.classList.remove('visible');
+}
+function updateMatImpact(){
+  const el2=document.getElementById('mat-impact');if(!el2)return;
+  const cfg=getMaturityCfg(S.inp.maturity);el2.className='mat-impact '+cfg.cls;el2.textContent=cfg.note;
+}
+
+// ── RESULTS PAGE ─────────────────────────────────────────────────────────────
+function mkResultsPage(){
+  const r=compute();const all=computeAll();
+  const frag=document.createDocumentFragment();
+  const layout=el('div','results-layout');
+  layout.appendChild(mkSidebar());
+  const main=el('div','main-col');
+
+  const hero=el('div','hero-card');
+  hero.appendChild(tx('div','hero-pill','5-Year Savings Potential'));
+  const nums=el('div','hero-numbers');
+  const nl=el('div','hero-num-low');nl.id='hero-num-low';nl.textContent=fmt(all.low.cum5sav);
+  const dash=el('div','hero-dash');dash.textContent='—';
+  const nh=el('div','hero-num-high');nh.id='hero-num-high';nh.textContent=fmt(all.high.cum5sav);
+  nums.appendChild(nl);nums.appendChild(dash);nums.appendChild(nh);hero.appendChild(nums);
+  const roiRow=el('div','roi-row');roiRow.id='roi-row';
+  [{k:'low',label:'Conservative'},{k:'med',label:'Realistic'},{k:'high',label:'Optimistic'}].forEach(({k,label})=>{
+    const ri=el('div','roi-item');ri.dataset.conf=k;
+    if(S.confidence===k)ri.classList.add('active');
+    ri.appendChild(tx('div','roi-item-lbl',label));
+    const pct=el('div','roi-item-pct');pct.id='roi-pct-'+k;
+    const rv=all[k];
+    pct.textContent=rv.roi5>0?'+'+Math.round(rv.roi5)+'%':'—';
+    pct.style.color=CONFIDENCE[k].color;
+    ri.appendChild(pct);
+    const sub=el('div','roi-item-sub');sub.id='roi-sub-'+k;sub.textContent='5yr ROI';
+    ri.appendChild(sub);
+    ri.onclick=()=>{
+      S.confidence=k;updateResults();
+      document.querySelectorAll('.roi-item').forEach(x=>x.classList.toggle('active',x.dataset.conf===k));
+    };
+    roiRow.appendChild(ri);
+  });
+  hero.appendChild(roiRow);
+  hero.appendChild(tx('div','hero-note','Adjust confidence level to explore the range of potential outcomes.'));
+  main.appendChild(hero);
+  const twoCol=el('div','two-col');
+  const pc=el('div','card');pc.appendChild(tx('div','card-title','Payback Period'));
+  const pbBig=el('div','pb-big');
+  pbBig.appendChild(tx('div','pb-num',String(r.payback)));
+  const pblb=el('div','pb-label-block');
+  pblb.appendChild(tx('div','pb-label','months'));
+  pblb.appendChild(tx('div','pb-sub','payback'));
+  pbBig.appendChild(pblb);pc.appendChild(pbBig);
+  const pbt=el('div','pb-track');const pbf=el('div','pb-fill');
+  pbf.id='pb-fill';pbf.style.width=Math.min(100,Math.round(r.payback/36*100))+'%';
+  pbt.appendChild(pbf);pc.appendChild(pbt);
+  twoCol.appendChild(pc);
+  const cc=el('div','card');
+  const chRow=el('div','chart-title-row');
+  chRow.appendChild(tx('div','card-title','Savings Growth'));
+  const leg=el('div','chart-legend');
+  const ld1=el('span','ld');ld1.style.background=CONFIDENCE[S.confidence].color;
+  leg.appendChild(ld1);leg.appendChild(document.createTextNode('Years 1–5'));
+  const ld2=el('span','ld');ld2.style.background='#D63F3F';ld2.style.marginLeft='6px';
+  leg.appendChild(ld2);leg.appendChild(document.createTextNode('Total'));
+  chRow.appendChild(leg);cc.appendChild(chRow);
+  const chartWrap=el('div');chartWrap.id='chart-wrap';chartWrap.appendChild(mkChart(r));
+  cc.appendChild(chartWrap);twoCol.appendChild(cc);main.appendChild(twoCol);
+  const fi=el('div','card');
+  const fiBadge=el('div','fi-badge');fiBadge.textContent='Financial Impact';fi.appendChild(fiBadge);
+  const tbl=document.createElement('table');tbl.className='ba-tbl';tbl.id='fi-tbl';
+  const thead=document.createElement('thead');
+  const hrow=document.createElement('tr');
+  ['Metric','Before','With ALVAO','Difference'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hrow.appendChild(th);});
+  thead.appendChild(hrow);tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');tbody.id='fi-tbody';
+  buildTableBody(tbody,r);tbl.appendChild(tbody);fi.appendChild(tbl);
+  const bm=el('div','bm');bm.id='bm-note';bm.innerHTML=mkBmNote(r);fi.appendChild(bm);
+  main.appendChild(fi);
+  const ps=el('div');ps.id='print-summary';ps.appendChild(mkPrintSummary(r));main.appendChild(ps);
+  const cta=el('div','cta');
+  const ctaL=el('div');
+  ctaL.appendChild(tx('div','cta-title','See ALVAO in action — book a live demo'));
+  ctaL.appendChild(tx('div','cta-sub','Walk through a personalised demo with our team and see exactly how these savings apply to your environment. No commitment required.'));
+  cta.appendChild(ctaL);
+  const ctaBtn=document.createElement('a');ctaBtn.href='https://www.alvao.com/en/demo-alvao';ctaBtn.target='_blank';ctaBtn.rel='noopener noreferrer';ctaBtn.className='cta-btn';ctaBtn.textContent='Book a Demo →';
+  cta.appendChild(ctaBtn);main.appendChild(cta);
+  layout.appendChild(main);frag.appendChild(layout);return frag;
+}
+
+// ── FINANCIAL IMPACT TABLE ──
+function buildTableBody(tbody,r){
+  tbody.innerHTML='';
+  function addSection(label,cls){
+    const tr=document.createElement('tr');tr.className='section-row'+(cls?' '+cls:'');
+    const td=document.createElement('td');td.colSpan=4;td.textContent=label;tr.appendChild(td);tbody.appendChild(tr);
+  }
+  function addRow(lbl,bef,aft,dlt,posGood,sumRow){
+    const tr=document.createElement('tr');if(sumRow)tr.className='sum-row';
+    const cls4=(dlt===''||dlt==='—')?'diff-na':posGood?'diff-pos':'diff-neg';
+    [{v:lbl,c:''},{v:bef,c:''},{v:aft,c:'after'},{v:dlt,c:cls4}]
+      .forEach(x=>{const td=document.createElement('td');td.textContent=x.v;if(x.c)td.className=x.c;tr.appendChild(td);});
+    tbody.appendChild(tr);
+  }
+  addSection('① ITSM Efficiency ('+r.agents+' agents · '+r.itsmGainPct+'% efficiency gain · tier '+Math.round(r.l1adj*100)+'/'+Math.round(r.l2adj*100)+'/'+Math.round(r.l3adj*100)+'%)');
+  addRow('Avg. cost per ticket (ref.)',fmt(r.avgCPT),fmt(r.avgCPTAfter),'−'+r.itsmGainPct+' %',false,false);
+  addRow('Agent labor pool / yr ('+r.agents+' agents)',fmt(r.totalAgentCostAnn),fmt(r.totalAgentCostAnnAfter),fmt(r.itsmSavings)+' saved',true,false);
+  addSection('② End-User Productivity ('+r.ticketsPerUser.toFixed(1)+' tix/user · '+r.avgWaitHrs.toFixed(1)+'h wait · −'+Math.round(r.waitReduction*100)+'% reduction)');
+  addRow('Wait-time productivity gain','—',fmt(r.userProductivityROI),fmt(r.userProductivityROI)+' gained',true,false);
+  addSection('③ Shift-Left / Channel');
+  addRow('Email→portal deflection','—',fmt(r.channelSavings),fmt(r.channelSavings)+' saved',true,false);
+  addSection('License & Asset Management');
+  addRow('License waste / year',fmt(r.licWaste),fmt(r.licWasteAfter),fmt(r.licWaste-r.licWasteAfter)+' saved',true,false);
+  if(r.endpts>0&&r.itamSavings>0){
+    const totalDev=r.endpts*r.annualDeviceCost;
+    addRow('ITAM device savings ('+r.endpts+' devices)',fmt(totalDev),fmt(totalDev-r.itamSavings),fmt(r.itamSavings)+' saved',true,false);
+  }
+  if(r.invSavings>0)addRow('Inventory labor / year','(manual)',fmt(r.invSavings),fmt(r.invSavings)+' saved',true,false);
+  const jmlLabel='⑥ JML Automation'+(r.onboardingIsAuto?' ('+r.onboardingVolume+' hires est.)':' ('+r.onboardingVolume+' hires)');
+  addSection(jmlLabel,'section-jml');
+  addRow('IT admin time ('+r.jmlEvents+' events × 4 hrs)','(manual)',fmt(r.jmlAdminSavings),fmt(r.jmlAdminSavings)+' saved',true,false);
+  addRow('New-hire time-to-value (6 hrs/hire)','—',fmt(r.jmlProductivitySavings),fmt(r.jmlProductivitySavings)+' gained',true,false);
+  if(r.bcActive){
+    addSection('⑦ Business Continuity — MTTR −'+Math.round(r.mttrReduction*100)+'%','section-bc');
+    addRow('Annual downtime cost',fmt(r.totalDowntimeCostBefore),fmt(r.totalDowntimeCostAfter),fmt(r.downtimeSavings)+' saved',true,false);
+  }
+  addRow('Total annual savings','—',fmt(r.annSavings),'','',true);
+}
+
+// ── METHODOLOGY NOTE ──
+function mkBmNote(r){
+  const matNote=r.maturitySet?`RF ×${r.maturityRF} applied (+${Math.round((r.maturityRF-1)*100)}%).`:'Maturity RF not set.';
+  const ticketNote=r.ticketsDynamic?` Ticket volume estimated (${r.users} users × 0.5).`:'';
+  const agentLine=r.agentsForPricing+' agents × $'+r.agentMonthlyUSD.toFixed(2)+'/mo';
+  const deviceLine=r.endpts>0?(r.endpts+' devices × $'+r.deviceMonthlyUSD.toFixed(3)+'/mo'):'no devices';
+  return '📊 <strong style="color:var(--text2)">Methodology (CFO-conservative, Gartner/Forrester/HDI aligned):</strong> '
+    +'PRF: Conservative 10%, Realistic 15%, Optimistic 20% · '
+    +'Tier split: sector-specific (HDI 2024), small-team adjusted · '
+    +'Cost-per-ticket: includes ×1.3 indirect overhead (HDI benchmark) · '
+    +'ITSM efficiency gain 18–30% applied to agent labor pool (Gartner ITSM MQ 2024; savings scale with agent count) · '
+    +'End-User Productivity: tier-weighted wait time (L1 1.5h / L2 4h / L3 10h) × reduction 25–45% × PRF (Forrester TEI 2024) · '
+    +'Shift-Left deflection: 40% × PRF (Gartner 2024) · '
+    +'License waste: 8–18% unused (Flexera 2024 ITAM Report) · '
+    +'License cost: $120/seat avg · ITAM savings: 1.5–4% of device TCO (Forrester/Gartner cap) · '
+    +'JML: 4 hrs/event IT admin, 6 hrs/hire productivity · '
+    +'Ramp-up: 15% Yr1 / 50% Yr2 / 80% Yr3 / 100% Yr4 / 107% Yr5 (continued optimisation) · '
+    +'<strong>ALVAO pricing: '+agentLine+' + '+deviceLine+' (list $63 + $2.25, −30% discount)</strong> · '
+    +matNote+ticketNote+' <em>Results are indicative estimates.</em>';
+}
+
+// ── PRINT SUMMARY ──
+function mkPrintSummary(r){
+  const div=el('div','print-only');
+  const seg=SECTORS[r.seg]||SECTORS['Tech'];
+  div.appendChild(tx('h3','','Input Parameters'));
+  const tbl=document.createElement('table');tbl.className='print-only-table';
+  const matDisplay=r.maturitySet?((MATURITY_LEVELS.find(m=>m.val===r.maturityRF)||{lbl:'Custom'}).lbl+' (RF ×'+r.maturityRF+')'):'Not specified';
+  const agentPriceStr='$'+r.agentMonthlyUSD.toFixed(2)+'/mo/agent (list $'+ALVAO_AGENT_LIST_USD+', −30%)';
+  const devicePriceStr=r.endpts>0?'$'+r.deviceMonthlyUSD.toFixed(3)+'/mo/device (list $'+ALVAO_DEVICE_LIST_USD+', −30%)':'no devices';
+  [
+    ['Industry',seg.icon+' '+seg.label],
+    ['Employees',r.users+' people'],
+    ['IT help desk staff',r.agentsForPricing+' staff'],
+    ['Hourly cost / agent',fmt(r.hrRate)+'/hr'],
+    ['Tier split (L1/L2/L3)',Math.round(r.l1adj*100)+' / '+Math.round(r.l2adj*100)+' / '+Math.round(r.l3adj*100)+' %'],
+    ['Agent labor pool / yr',fmt(r.totalAgentCostAnn)+' ('+r.agents+' agents × '+fmt(r.hrRate)+'/hr × 1760 hrs)'],
+    ['Monthly ticket volume',Math.round(r.mTix)+' / mo'+(r.ticketsDynamic?' (estimated)':'')],
+    ['Tickets per user / year',r.ticketsPerUser.toFixed(1)],
+    ['Avg wait time (tier-weighted)',r.avgWaitHrs.toFixed(1)+' hrs'],
+    ['Wait-time reduction',Math.round(r.waitReduction*100)+'%'],
+    ['Email / phone share',Math.round(r.emailPct)+'%'],
+    ['Managed devices',r.endpts>0?r.endpts+' devices':'Not specified'],
+    ['Unused licenses',r.unusedLicPct+'% (≈'+Math.round(r.unusedLicCount)+' licenses)'],
+    ['IT inventory hrs',r.invHrs+' hrs/mo'],
+    ['JML events',r.onboardingVolume+' hires/yr → '+r.jmlEvents+' events · '+fmt(r.onboardingTotal)+'/yr'],
+    ['Business Continuity',r.bcActive?r.majorIncidents+' incidents · '+fmt(r.downtimeSavings)+'/yr':'Not entered'],
+    ['Service Mgmt Maturity',matDisplay],
+    ['Confidence Level',CONFIDENCE[r.conf].label],
+    ['ALVAO Agent licence',agentPriceStr],
+    ['ALVAO Device licence',devicePriceStr],
+    ['ALVAO Subscription total',fmt(r.alvaoAnn)+'/yr ('+r.agentsForPricing+' agents + '+r.endpts+' devices)'],
+    ['Admin overhead (0.18 FTE)',fmt(r.adminOverheadCost)+'/yr'],
+  ].forEach(([k,v])=>{
+    const tr=document.createElement('tr');
+    const td1=document.createElement('td');td1.textContent=k;
+    const td2=document.createElement('td');td2.textContent=v;
+    tr.appendChild(td1);tr.appendChild(td2);tbl.appendChild(tr);
+  });
+  div.appendChild(tbl);return div;
+}
+
+// ── REACTIVE UPDATE ──
+function animNum(elId,txt){
+  const e=document.getElementById(elId);if(!e)return;
+  e.style.opacity='0.3';e.style.transform='translateY(-4px)';
+  setTimeout(()=>{e.textContent=txt;e.style.opacity='1';e.style.transform='none';},120);
+}
+function updateResults(){
+  const r=compute();const all=computeAll();
+  animNum('hero-num-low',fmt(all.low.cum5sav));
+  animNum('hero-num-high',fmt(all.high.cum5sav));
+  const pbNum=document.querySelector('.pb-num');if(pbNum)pbNum.textContent=String(r.payback);
+  const pbFill=document.getElementById('pb-fill');
+  if(pbFill)pbFill.style.width=Math.min(100,Math.round(r.payback/36*100))+'%';
+  const cw=document.getElementById('chart-wrap');if(cw){cw.innerHTML='';cw.appendChild(mkChart(r));}
+  const tbody=document.getElementById('fi-tbody');if(tbody)buildTableBody(tbody,r);
+  const bm=document.getElementById('bm-note');if(bm)bm.innerHTML=mkBmNote(r);
+  const ps=document.getElementById('print-summary');if(ps){ps.innerHTML='';ps.appendChild(mkPrintSummary(r));}
+  const badge=document.querySelector('.sb-sector-badge');
+  if(badge){const seg=SECTORS[S.inp.segment]||SECTORS['Tech'];badge.textContent='';badge.appendChild(document.createTextNode(seg.icon+' '+seg.label));}
+  const jmlP=document.getElementById('jml-preview');
+  if(jmlP){jmlP.textContent='JML savings: '+fmt(r.onboardingTotal)+'/yr';jmlP.classList.toggle('visible',r.onboardingTotal>0);}
+  ['low','med','high'].forEach(k=>{
+    const el2=document.getElementById('roi-pct-'+k);
+    if(el2){const rv=all[k];el2.textContent=rv.roi5>0?'+'+Math.round(rv.roi5)+'%':'—';}
+    const ri=document.querySelector('.roi-item[data-conf="'+k+'"]');
+    if(ri)ri.classList.toggle('active',k===S.confidence);
+  });
+  updateMatImpact();
+}
+
+render();
+</script>
+</body>
+</html>
