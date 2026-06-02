@@ -6,14 +6,16 @@
 <title>ALVAO — ROI Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F2F4F7;
+  --bg:#F1F3F8;
   --card:#fff;
-  --text:#111827;--text2:#374151;--text3:#9CA3AF;--text4:#6B7280;
-  --bd:#E5E7EB;--lt:#F9FAFB;
-  --red:#D63F3F;--red-dk:#B83535;
+  --text:#143763;--text2:#143763;--text3:#808191;--text4:#808191;
+  --bd:#DFDFDF;--lt:#F1F3F8;
+  --red:#E81123;--red-dk:#C40F1E;
   --blue:#1B4DCC;--blue-lt:#EFF4FF;
   --green:#1A7F4B;--green-lt:#ECFDF5;--green-bd:#A7F3D0;
   --orange:#B45309;--orange-lt:#FFFBEB;--orange-bd:#FCD34D;
@@ -27,31 +29,42 @@
 body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 
 /* ── APP SHELL ── */
-.app-header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-header{background:#fff;border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:57px}
 .header-left{display:flex;align-items:center;gap:12px}
-.logo-mark{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
-.logo-title{font-size:15px;font-weight:700;color:var(--red);letter-spacing:-.2px;line-height:1.1}
-.logo-sub{font-size:11px;color:var(--text3);font-weight:400;margin-top:1px}
 .header-right{display:flex;align-items:center;gap:8px}
 
-.app-nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:40px}
+.app-nav{background:transparent;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:40px;margin-top:8px}
 .nav-left{display:flex;align-items:center;gap:6px}
 .btn-retake{background:none;border:none;font-size:12.5px;color:var(--text4);cursor:pointer;font-family:inherit;padding:0;display:flex;align-items:center;gap:4px;transition:color .12s}
 .btn-retake:hover{color:var(--text2)}
 .nav-right{display:flex;align-items:center;gap:8px}
 .cur-wrap{display:flex;align-items:center;gap:0}
-.cur-sel{background:none;border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:5px 10px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
-.export-btn{display:flex;align-items:center;gap:5px;background:none;border:1.5px solid var(--bd);border-radius:var(--r-sm);padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--text4);cursor:pointer;font-family:inherit;transition:all .12s}
-.export-btn:hover{border-color:var(--blue);color:var(--blue)}
+.cur-sel{background:#EFF2F8;border:1px solid var(--bd);border-radius:var(--r-sm);padding:7px 12px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:28px}
+.export-btn{display:flex;align-items:center;gap:6px;background:var(--red);border:none;border-radius:var(--r-sm);padding:9px 18px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:all .12s}
+.export-btn:hover{background:var(--red-dk)}
 
 .wrap{max-width:1100px;margin:0 auto;padding:24px 24px 60px}
 
+/* ── results top toolbar ── */
+.results-toolbar{max-width:1100px;margin:0 auto;padding:18px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toolbar-actions{display:flex;align-items:center;gap:10px}
+
 /* ── QUIZ ── */
-.quiz-page{min-height:calc(100vh - 57px);display:flex;flex-direction:column;align-items:center;background:#fff;padding:0}
-.quiz-segs{display:flex;gap:5px;width:100%;max-width:600px;padding:28px 32px 0}
-.quiz-seg{flex:1;height:3px;border-radius:2px;background:var(--bd);transition:background .35s ease}
-.quiz-seg.done{background:var(--red)}
-.quiz-seg.active{background:var(--red);opacity:.4}
+.quiz-page{min-height:calc(100vh - 57px);display:flex;flex-direction:column;background:var(--bg)}
+.quiz-hero{background:var(--hero-img,none),#F2F4F9;background-size:cover;background-position:center;padding:100px 32px 90px;text-align:center;position:relative;overflow:hidden;min-height:320px}
+.quiz-hero-blob{display:none}
+.quiz-hero-img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;pointer-events:none;z-index:0}
+.quiz-hero-title{font-size:clamp(26px,4vw,40px);font-weight:600;color:#143763;line-height:1.15;letter-spacing:-0.02em;margin-bottom:12px;position:relative;z-index:1}
+.quiz-hero-sub{font-size:14px;color:#143763;line-height:1.6;max-width:420px;margin:0 auto;position:relative;opacity:.7;z-index:1}
+.quiz-body{flex:1;padding:0 24px 64px;max-width:680px;width:100%;margin:0 auto}
+.quiz-segs-wrap{display:flex;justify-content:center;align-items:center;background:#fff;padding:20px 48px;border-bottom:1px solid #DFDFDF;width:100vw;position:relative;left:50%;transform:translateX(-50%)}
+.quiz-card{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:36px 40px;box-shadow:0 2px 12px rgba(0,0,0,.05);position:relative}
+.quiz-card-title{font-size:22px;font-weight:700;color:#1a2b4a;margin-bottom:6px;text-align:center}
+.quiz-card-sub{font-size:13px;color:var(--text4);margin-bottom:28px;text-align:center}
+.quiz-segs{display:flex;gap:5px;width:100%;max-width:500px;padding:0}
+.quiz-seg{flex:1;height:3px;border-radius:2px;background:#DFDFDF;transition:background .35s ease}
+.quiz-seg.done{background:#E81123}
+.quiz-seg.active{background:#E81123;opacity:.5}
 .quiz-content{display:flex;flex-direction:column;width:100%;max-width:600px;padding:0 32px;flex:1;justify-content:center;padding-top:32px;padding-bottom:80px}
 .quiz-qlbl{font-size:11.5px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;opacity:0;animation:fadeUp .35s ease forwards}
 .quiz-qh{font-size:clamp(22px,3.5vw,32px);font-weight:700;color:var(--text);line-height:1.2;letter-spacing:-.4px;margin-bottom:10px;opacity:0;animation:fadeUp .35s .05s ease forwards}
@@ -75,15 +88,15 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 .quiz-pill.sel{border-color:var(--red);color:var(--red);background:#FFF5F5}
 .quiz-err-msg{font-size:12px;color:var(--red);min-height:16px;margin-bottom:10px;opacity:0;transition:opacity .15s}
 .quiz-err-msg.visible{opacity:1}
-.quiz-btn-row{display:flex;align-items:center;gap:10px;margin-top:6px;opacity:0;animation:fadeUp .35s .25s ease forwards}
+.quiz-btn-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:24px;opacity:0;animation:fadeUp .35s .25s ease forwards}
 .quiz-confirm-btn{background:var(--red);color:#fff;border:none;border-radius:10px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;transition:background .12s,transform .08s,box-shadow .12s;box-shadow:0 2px 8px rgba(214,63,63,.25)}
 .quiz-confirm-btn:hover{background:var(--red-dk);transform:translateY(-1px);box-shadow:0 4px 14px rgba(214,63,63,.30)}
 .quiz-confirm-btn:active{transform:translateY(0);box-shadow:none}
 .quiz-back-btn-inline{background:#F3F4F6;border:none;border-radius:10px;padding:14px 22px;font-size:14px;font-weight:500;color:var(--text4);cursor:pointer;font-family:inherit;transition:background .12s,color .12s}
 .quiz-back-btn-inline:hover{background:#E5E7EB;color:var(--text2)}
-.quiz-sector-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;opacity:0;animation:fadeUp .35s .15s ease forwards}
+.quiz-sector-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;opacity:0;animation:fadeUp .35s .15s ease forwards}
 @media(max-width:420px){.quiz-sector-grid{grid-template-columns:1fr}}
-.quiz-sector-card{display:flex;align-items:center;gap:11px;padding:12px 14px;border:1.5px solid var(--bd);border-radius:10px;background:#fff;cursor:pointer;font-family:inherit;transition:all .12s;text-align:left}
+.quiz-sector-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid #DFDFDF;border-radius:8px;background:#fff;cursor:pointer;font-family:inherit;transition:all .12s;text-align:left}
 .quiz-sector-card:hover{border-color:var(--red);background:#FFF5F5}
 .quiz-sector-card.sel{border-color:var(--red);background:#FFF5F5}
 .quiz-sector-icon{font-size:22px;flex-shrink:0}
@@ -97,33 +110,33 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 /* ── SIDEBAR ── */
 .sidebar{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;box-shadow:var(--sh-sm)}
 .sb-section-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:12px}
-.sb-sector-badge{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--r-sm);margin-bottom:14px;font-size:12px;font-weight:600;color:#92400E}
+.sb-sector-badge{display:flex;align-items:center;gap:6px;padding:7px 10px;background:#FFF5F5;border:1px solid #F6C9CC;border-radius:var(--r-sm);margin-bottom:14px;font-size:12px;font-weight:600;color:var(--red)}
 .sb-sector-badge .sbi{font-size:14px}
 .ig{margin-bottom:10px}
 .ig:last-child{margin-bottom:0}
 .ig label{display:block;font-size:11px;font-weight:500;color:var(--text4);margin-bottom:4px}
-.ig-row{display:flex;align-items:center;gap:0;border:1.5px solid var(--bd);border-radius:var(--r-sm);overflow:hidden;background:#fff}
+.ig-row{display:flex;align-items:center;gap:0;border:1px solid #DFDFDF;border-radius:4px;overflow:hidden;background:#fff}
 .ig-row:focus-within{border-color:var(--red)}
 .ig input[type=number]{flex:1;padding:7px 8px;border:none;font-size:12.5px;font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--text);background:transparent;outline:none;-moz-appearance:textfield;min-width:0}
 .ig input[type=number]::-webkit-inner-spin-button{opacity:.3}
 .ig-sfx{font-size:11px;color:var(--text3);padding:0 8px 0 0;white-space:nowrap;background:transparent;font-weight:500}
 
-.adv-divider{height:1px;background:var(--bd);margin:14px 0}
-.adv-block{background:#F0F4FB;border:1.5px solid #D4DEF5;border-radius:var(--r-sm);overflow:hidden}
-.adv-header{display:flex;align-items:flex-start;gap:8px;padding:10px 11px;cursor:pointer;user-select:none}
-.adv-header-icon{font-size:13px;flex-shrink:0;margin-top:1px}
-.adv-header-text{}
-.adv-header-title{font-size:11.5px;font-weight:700;color:#1e3a8a}
-.adv-header-desc{font-size:10px;color:#4B6BAB;line-height:1.45;margin-top:2px}
-.adv-chevron{margin-left:auto;color:#4B6BAB;flex-shrink:0;transition:transform .2s}
-.adv-chevron.open{transform:rotate(180deg)}
-.adv-body{display:none;padding:0 11px 11px;border-top:1px solid #D4DEF5}
-.adv-body.open{display:block}
-.adv-body .ig{margin-top:10px;margin-bottom:0}
-.adv-body .ig:not(:last-child){margin-bottom:8px}
-.adv-body .ig-row{background:#fff}
-.adv-body .ig label{color:#1e3a8a;opacity:.8}
-.adv-body .ig select{width:100%;padding:7px 28px 7px 8px;border:none;font-size:11.5px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--text);background:transparent;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.tune-divider{height:1px;background:var(--bd);margin:14px 0}
+.tune-block{background:#DBE9F8;border:1.5px solid #C5D9EF;border-radius:var(--r-sm);overflow:hidden}
+.tune-header{display:flex;align-items:flex-start;gap:8px;padding:10px 11px;cursor:pointer;user-select:none}
+.tune-header-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.tune-header-text{}
+.tune-header-title{font-size:11.5px;font-weight:700;color:#1e3a8a}
+.tune-header-desc{font-size:10px;color:#4B6BAB;line-height:1.45;margin-top:2px}
+.tune-chevron{margin-left:auto;color:#4B6BAB;flex-shrink:0;transition:transform .2s}
+.tune-chevron.open{transform:rotate(180deg)}
+.tune-body{display:none;padding:0 11px 11px;border-top:1px solid #D4DEF5}
+.tune-body.open{display:block}
+.tune-body .ig{margin-top:10px;margin-bottom:0}
+.tune-body .ig:not(:last-child){margin-bottom:8px}
+.tune-body .ig-row{background:#fff}
+.tune-body .ig label{color:#1e3a8a;opacity:.8}
+.tune-body .ig select{width:100%;padding:7px 28px 7px 8px;border:none;font-size:11.5px;font-family:'IBM Plex Sans',sans-serif;font-weight:500;color:var(--text);background:transparent;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .ig-row-select{border:1.5px solid var(--bd);border-radius:var(--r-sm);background:#fff;overflow:hidden}
 .ig-row-select:focus-within{border-color:var(--red)}
 .mat-impact{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500}
@@ -131,97 +144,206 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 .mat-impact.low{background:#FEF9EC;color:#92400e;border:1px solid #FDE68A}
 .mat-impact.med{background:#fff;color:#1e3a8a;border:1px solid #bcd0f7}
 .mat-impact.high{background:var(--green-lt);color:#14532d;border:1px solid var(--green-bd)}
-.adv-subsection-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--crimson);margin:12px 0 6px;display:flex;align-items:center;gap:5px}
-.adv-body .bc-inp{background:#FFF5F5!important}
+.tune-subsection-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--crimson);margin:12px 0 6px;display:flex;align-items:center;gap:5px}
+.tune-body .bc-inp{background:#FFF5F5!important}
 .bc-preview{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500;background:var(--crimson-lt);color:var(--crimson);border:1px solid var(--crimson-bd);display:none}
 .bc-preview.visible{display:block}
-.jml-preview{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500;background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-bd);display:none}
+.jml-preview{margin-top:5px;font-size:10px;padding:4px 8px;border-radius:5px;line-height:1.4;font-weight:500;background:var(--green-lt);color:var(--green);border:1px solid var(--green-bd);display:none}
 .jml-preview.visible{display:block}
 
 /* ── MAIN COLUMN ── */
 .main-col{display:flex;flex-direction:column;gap:14px}
 
-.hero-card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:32px 28px 24px;box-shadow:var(--sh-sm);text-align:center}
-.hero-pill{display:inline-flex;align-items:center;background:var(--lt);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:10.5px;font-weight:700;color:var(--text4);letter-spacing:.07em;text-transform:uppercase;margin-bottom:18px}
+.results-hero{
+  background:var(--hero-img,linear-gradient(180deg,rgba(242,244,249,0) 92%,#F2F4F9 98%)),#F2F4F9;
+  background-size:cover;background-position:center top;
+  padding:56px 32px 48px;text-align:center;position:relative;overflow:hidden;
+  border-bottom:1px solid #DFDFDF;width:100vw;margin-left:calc(-50vw + 50%);margin-bottom:0;
+}
+.results-hero-title{font-size:clamp(28px,3.5vw,48px);font-weight:600;color:#143763;line-height:1.15;letter-spacing:-0.02em;margin-bottom:8px;position:relative;z-index:1}
+.results-hero-sub{font-size:16px;color:#143763;line-height:1.5;position:relative;z-index:1}
+.hero-card{background:#FFFFFF;border:1px solid #DFDFDF;border-radius:16px;padding:40px 40px 32px;text-align:center}
+.hero-pill{display:inline-flex;align-items:center;background:#F1F3F8;border:1px solid #DFDFDF;border-radius:20px;padding:4px 14px;font-size:14px;font-weight:400;color:#808191;letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px}
 .hero-numbers{display:flex;align-items:baseline;justify-content:center;gap:16px;margin-bottom:20px}
-.hero-num-low{font-size:3.4rem;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;color:#94A3B8;transition:opacity .15s}
-.hero-num-high{font-size:3.4rem;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;color:var(--text);transition:opacity .15s}
-.hero-dash{font-size:2.2rem;font-weight:300;color:var(--bd);flex-shrink:0}
+.hero-num-low{font-size:3rem;font-weight:600;font-family:'IBM Plex Sans',sans-serif;letter-spacing:-0.02em;color:#808191}
+.hero-num-high{font-size:3rem;font-weight:600;font-family:'IBM Plex Sans',sans-serif;letter-spacing:-0.02em;color:#143763}
+.hero-dash{font-size:2rem;font-weight:300;color:#DFDFDF;flex-shrink:0}
+.hero-note{font-size:12.5px;color:var(--text3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px}
 
-.roi-row{display:flex;gap:0;border:1.5px solid var(--bd);border-radius:var(--r-sm);overflow:hidden;margin-bottom:12px;background:var(--lt)}
-.roi-item{flex:1;padding:10px 6px;text-align:center;position:relative;cursor:pointer}
+.roi-row{display:flex;gap:0;border:1px solid #DFDFDF;border-radius:8px;overflow:hidden;margin-bottom:16px;background:#fff}
+.roi-item{flex:1;padding:14px 6px;text-align:center;position:relative;cursor:pointer}
 .roi-item:not(:last-child){border-right:1.5px solid var(--bd)}
-.roi-item.active{background:#fff;box-shadow:inset 0 -2px 0 var(--text)}
-.roi-item-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px}
+.roi-item.active{background:#F2F5F9;border-bottom:2px solid #143763}
+.roi-item-lbl{font-size:14px;font-weight:400;text-transform:none;letter-spacing:0;color:#808191;margin-bottom:6px}
 .roi-item.active .roi-item-lbl{color:var(--text4)}
-.roi-item-pct{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:-1px;line-height:1}
-.roi-item-sub{font-size:9.5px;color:var(--text3);margin-top:2px}
+.roi-item-pct{font-size:17px;font-weight:600;font-family:'IBM Plex Sans',sans-serif;letter-spacing:0;line-height:1}
+.roi-item-sub{font-size:9.5px;color:var(--text3);margin-top:2px;display:none}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:600px){.two-col{grid-template-columns:1fr}}
 
-.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:40px;box-shadow:var(--sh-sm)}
 .card-title{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:14px}
 
-.pb-big{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
-.pb-num{font-size:52px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--red);line-height:1}
-.pb-label-block{}
-.pb-label{font-size:14px;font-weight:600;color:var(--text2);line-height:1.2}
-.pb-sub{font-size:11px;color:var(--text3);line-height:1.1}
-.pb-track{height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
-.pb-fill{height:100%;background:var(--red);border-radius:2px;transition:width .4s ease}
+/* Payback + Savings Growth headings styled large like screenshot */
+.pb-card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px}
+.pb-card-head .pb-heading{font-size:24px;font-weight:600;color:var(--text);letter-spacing:-.3px;white-space:nowrap}
+.pb-card-head .pb-num-inline{display:flex;align-items:baseline;gap:6px}
+.pb-card-head .pb-num{font-size:42px;font-weight:700;color:var(--red);line-height:1;font-family:'IBM Plex Sans',sans-serif}
+.pb-card-head .pb-num-unit{font-size:14px;color:var(--text3);font-weight:500}
+.sg-heading{font-size:24px;font-weight:600;color:var(--text);letter-spacing:-.3px;margin-bottom:8px}
 
 .chart-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .chart-legend{display:flex;align-items:center;font-size:10.5px;color:var(--text3)}
 .ld{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;vertical-align:middle}
 
-.fi-badge{display:inline-flex;align-items:center;background:var(--orange-lt);border:1px solid var(--orange-bd);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--orange);letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px}
+.fi-heading{font-size:24px;font-weight:600;color:var(--text);letter-spacing:-.3px;margin-bottom:18px}
+.fi-badge{display:none}
 .ba-tbl{width:100%;border-collapse:collapse}
-.ba-tbl th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:0 8px 10px;text-align:right;border-bottom:1.5px solid var(--bd)}
+.ba-tbl th{font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--text3);padding:0 8px 12px;text-align:right;border-bottom:1.5px solid var(--bd)}
 .ba-tbl th:first-child{text-align:left;padding-left:0}
-.ba-tbl td{padding:9px 8px;font-size:12px;border-bottom:1px solid var(--lt);vertical-align:middle}
+.ba-tbl td{padding:11px 8px;font-size:13px;border-bottom:1px solid var(--lt);vertical-align:middle}
 .ba-tbl td:first-child{color:var(--text2);padding-left:0;font-weight:500}
 .ba-tbl td:not(:first-child){text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:500}
-.ba-tbl td.after{color:var(--green);font-weight:700}
-.ba-tbl td.diff-pos{font-weight:700;color:var(--red)}
-.ba-tbl td.diff-neg{font-weight:700;color:var(--red)}
+.ba-tbl td.after{color:var(--text2);font-weight:500}
+.ba-tbl td.diff-pos{font-weight:600;color:var(--red)}
+.ba-tbl td.diff-neg{font-weight:600;color:var(--red)}
 .ba-tbl td.diff-na{color:var(--text3);font-weight:400}
-.ba-tbl tr.sum-row td{border-bottom:none;font-weight:700;padding-top:12px;border-top:1.5px solid var(--bd)}
-.ba-tbl tr.section-row td{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text4);padding-top:14px;padding-bottom:4px;border-bottom:none;background:none;padding-left:0}
-.ba-tbl tr.section-row.section-jml td{color:var(--teal)}
-.ba-tbl tr.section-row.section-bc td{color:var(--crimson)}
-.bm{font-size:10.5px;color:var(--text3);line-height:1.65;padding:10px 0 2px;border-top:1px solid var(--bd);margin-top:4px}
+.ba-tbl tr.sum-row td{border-bottom:none;font-weight:700;padding-top:14px;border-top:1.5px solid var(--bd)}
+.ba-tbl tr.section-row td{font-size:11.5px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);padding-top:18px;padding-bottom:6px;border-bottom:none;background:none;padding-left:0}
+.ba-tbl tr.section-row.section-jml td{color:var(--text3)}
+.ba-tbl tr.section-row.section-bc td{color:var(--text3)}
+.bm{font-size:10.5px;color:var(--text3);line-height:1.65;padding:18px 0 2px;border-top:1px solid var(--bd);margin-top:14px}
 
-.cta{background:var(--red);border-radius:var(--r);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-@media(max-width:600px){.cta{flex-direction:column;align-items:flex-start}}
-.cta-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:-.2px;line-height:1.2}
-.cta-sub{font-size:12px;color:rgba(255,255,255,.6);line-height:1.5}
-.cta-btn{background:#fff;color:var(--red);border:none;border-radius:var(--r-sm);padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .12s;text-decoration:none;display:inline-block}
+.cta{background:#E81123;border-radius:16px;padding:40px 40px 52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
+.cta-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:-.2px;line-height:1.2}
+.cta-sub{font-size:14px;color:rgba(255,255,255,.85);line-height:1.5;max-width:620px;margin-bottom:18px}
+.cta-btn{background:#fff;color:var(--red);border:none;border-radius:var(--r-sm);padding:14px 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .12s;text-decoration:none;display:inline-block}
 .cta-btn:hover{opacity:.88}
 
 .print-only{display:none}
+.print-header{display:none}
+.print-footer{display:none}
+.print-bandtop{display:none}
+
 @media print{
+  .hero-note{display:none!important}
   *{-webkit-print-color-adjust:exact!important;color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff!important}
-  .app-header,.app-nav{display:none!important}
-  .quiz-page{display:none!important}
-  .sidebar{display:none!important}
-  .results-layout{display:block!important}
-  .main-col{display:block!important}
-  .cta{display:none!important}
-  .card,.hero-card{box-shadow:none!important;border:1px solid #ddd!important;break-inside:avoid;margin-bottom:10pt}
-  .print-only{display:block!important;margin-bottom:14pt}
-  @page{margin:.75in;size:letter portrait}
+
+  /* page background = light blue, with wavy gradient band on every page top */
+  html,body{background:#EAF0F8!important}
+  @page{
+    size:A4 portrait;
+    margin:26mm 14mm 20mm 14mm;
+    background:#EAF0F8;
+  }
+
+  /* hide app chrome */
+  .app-header,.app-nav,.results-toolbar,.results-hero,.bg-upload-btn,.export-btn,.btn-retake,.cta,.sidebar,.hero-note{display:none!important}
+  .quiz-shell,.quiz-page{display:none!important}
+
+  .wrap{padding:0!important;max-width:100%!important;background:transparent!important}
+  .results-layout{display:block!important;background:transparent!important}
+  .main-col{display:block!important;background:transparent!important;gap:0!important}
+
+  /* gradient band fixed to top of every printed page */
+  .print-bandtop{
+    display:block!important;
+    position:fixed;top:-26mm;left:-14mm;right:-14mm;height:34mm;
+    background:
+      radial-gradient(120% 150% at 78% -10%, rgba(232,17,35,.32) 0%, rgba(255,140,60,.55) 18%, rgba(255,255,255,0) 52%),
+      radial-gradient(90% 120% at 30% -20%, rgba(180,200,235,.45) 0%, rgba(255,255,255,0) 60%),
+      #EAF0F8;
+    z-index:0;pointer-events:none;
+  }
+
+  /* running header text over the band */
+  .print-header{
+    display:flex!important;justify-content:space-between;align-items:center;
+    position:fixed;top:-18mm;left:0;right:0;z-index:2;
+    padding:0 2mm;
+  }
+  .print-header-title{font-size:11pt;font-weight:600;color:#143763}
+  .print-header-date{font-size:10pt;color:#808191}
+
+  /* footer with ALVAO logo + page number, fixed bottom of each page */
+  .print-footer{
+    display:flex!important;justify-content:space-between;align-items:flex-end;
+    position:fixed;bottom:-16mm;left:0;right:0;z-index:2;padding:0 2mm;
+  }
+  .print-footer-logo svg{width:96px;height:auto}
+  .print-footer-page{font-size:9pt;color:#808191}
+
+  /* white content cards with soft shadow, like the mockup */
+  .hero-card,.card{
+    background:#fff!important;
+    border:none!important;
+    border-radius:14px!important;
+    box-shadow:0 6px 22px rgba(20,55,99,.10),0 2px 6px rgba(20,55,99,.06)!important;
+    break-inside:avoid;
+    margin:0 0 14pt 0!important;
+    position:relative;z-index:1;
+    padding:28px 30px!important;
+  }
+  .hero-card{margin-top:2pt!important}
+
+  /* hero numbers: shrink to fit inside card on print */
+  .hero-numbers{flex-wrap:nowrap!important}
+  .hero-num-low,.hero-num-high{font-size:30pt!important;white-space:nowrap}
+  .hero-dash{font-size:20pt!important}
+
+  /* separate Payback Period heading from Savings Growth */
+  .pb-card-head{margin-bottom:18pt!important}
+  .sg-heading{margin-top:6pt!important;margin-bottom:10pt!important}
+
+  /* page 1 = hero + payback/chart; page 2 = financial impact; page 3 = inputs */
+  .two-col{display:block!important;break-after:page}
+  .two-col .card{margin-bottom:0!important}
+  .card:has(#fi-tbl){break-before:page;break-inside:auto}
+  #fi-tbody tr{break-inside:avoid}
+  .bm{font-size:7.5pt!important;line-height:1.6!important}
+
+  .print-only{display:block!important;break-before:page;padding:0!important}
+  .print-only h3{font-size:16px;font-weight:600;color:#143763;margin-bottom:16px}
+  .print-only-table{width:100%;border-collapse:collapse;font-size:10pt}
+  .print-only-table td{padding:8pt 10pt;border:none;border-bottom:1px solid #EAEDF3;vertical-align:top}
+  .print-only-table tr td:first-child{color:#808191;font-weight:500;width:46%;background:transparent}
+  .print-only-table tr td:last-child{color:#143763;font-weight:600;text-align:right}
+
+  /* wrap print-only inputs in a white card look */
+  #print-summary{
+    background:#fff!important;border-radius:14px;
+    box-shadow:0 6px 22px rgba(20,55,99,.10),0 2px 6px rgba(20,55,99,.06)!important;
+    padding:28px 30px!important;position:relative;z-index:1;break-inside:avoid;
+  }
 }
 .print-only-table{width:100%;border-collapse:collapse;font-size:11pt}
-.print-only-table td{padding:4pt 8pt;border:1px solid #ddd;vertical-align:top}
-.print-only-table td:first-child{color:#4B5563;font-weight:500;background:#f8f9fa;width:45%}
-.print-only-table td:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.print-only-table td{padding:4pt 8pt;vertical-align:top}
+
+/* ── CLIENT-SIDE PDF EXPORT (off-screen A4 pages) ── */
+#pdf-stage{position:fixed;left:-9999px;top:0;width:794px;background:#EAF0F8}
+.pdf-page{
+  width:794px;height:1123px;background:#EAF0F8;position:relative;overflow:hidden;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+/* full-page background image rendered from the template PDF */
+.pdf-bg{position:absolute;inset:0;width:794px;height:1123px;object-fit:cover;z-index:0;pointer-events:none}
+.pdf-head{position:absolute;top:34px;left:48px;right:48px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.pdf-head-title{font-size:15px;font-weight:600;color:#143763}
+.pdf-head-date{font-size:13px;color:#808191}
+.pdf-body{position:absolute;top:200px;left:48px;right:48px;z-index:1}
+.pdf-card{background:#fff;border-radius:16px;box-shadow:0 8px 28px rgba(20,55,99,.10),0 3px 8px rgba(20,55,99,.06);padding:34px 36px;margin-bottom:18px}
+.pdf-foot{position:absolute;bottom:40px;left:48px;right:48px;display:flex;justify-content:space-between;align-items:flex-end;z-index:2}
+.pdf-foot-page{font-size:12px;color:#808191}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
+// ── KONFIGURACE OBRÁZKŮ ──────────────────────────────────────────────────────
+// Hero banner (dotazník i výsledky). Soubor lež vedle index.html. Prázdné = bez obrázku.
+const HERO_IMAGE_URL='hero.png';
+
 // ── CURRENCY ─────────────────────────────────────────────────────────────────
 const CUR={
   USD:{rate:1,   locale:'en-US',sym:'$'},
@@ -250,11 +372,11 @@ function fmtPill(val,isHourly){
 }
 
 // ── ALVAO PRICING (USD, list price before discount) ──
-const ALVAO_AGENT_LIST_USD  = 63;    // $63 / agent / month
-const ALVAO_DEVICE_LIST_USD = 2.25;  // $2.25 / device / month
-const ALVAO_DISCOUNT        = 0.30;  // 30 % discount
-const ALVAO_AGENT_USD  = ALVAO_AGENT_LIST_USD  * (1 - ALVAO_DISCOUNT); // $44.10
-const ALVAO_DEVICE_USD = ALVAO_DEVICE_LIST_USD * (1 - ALVAO_DISCOUNT); // $1.575
+const ALVAO_AGENT_LIST_USD  = 63;
+const ALVAO_DEVICE_LIST_USD = 2.25;
+const ALVAO_DISCOUNT        = 0.30;
+const ALVAO_AGENT_USD  = ALVAO_AGENT_LIST_USD  * (1 - ALVAO_DISCOUNT);
+const ALVAO_DEVICE_USD = ALVAO_DEVICE_LIST_USD * (1 - ALVAO_DISCOUNT);
 
 // ── MATURITY LEVELS ──
 const MATURITY_LEVELS=[
@@ -355,7 +477,7 @@ const QS=[
 
 // ── STATE ──
 let S={
-  cur:'USD',phase:'quiz',step:0,confidence:'med',err:'',advOpen:true,
+  cur:'USD',phase:'quiz',step:0,confidence:'med',err:'',tuneOpen:true,
   inp:{
     segment:'',users:'',agents:'',hourlyCost:'',
     monthlyTickets:'',emailTickets:50,endpoints:'',
@@ -375,7 +497,7 @@ function computeFor(conf){
   const agents=Math.max(1,parseFloat(a.agents)||5);
 
   const hcInCur=Math.max(1,parseFloat(a.hourlyCost)||HOURLY_DEF[S.cur]);
-  const hrRate=hcInCur/CUR[S.cur].rate; // USD per hour
+  const hrRate=hcInCur/CUR[S.cur].rate;
 
   const emailPct=Math.max(0,Math.min(100,parseFloat(a.emailTickets)||50));
   const invHrs=Math.max(0,parseFloat(a.inventoryHours)||0);
@@ -385,13 +507,12 @@ function computeFor(conf){
   const mTix=Math.max(1,inputTickets>0?inputTickets:users*storedRatio);
   const ticketsDynamic=(inputTickets===0);
 
-  const PRF=conf==='low'?0.10:conf==='high'?0.20:0.15;
+  const PRF=conf==='low'?0.08:conf==='high'?0.16:0.10;
 
   const maturitySet=(a.maturity!==null&&a.maturity!==undefined&&a.maturity!=='');
   const maturityRF=maturitySet?parseFloat(a.maturity):1.0;
   const matCfg=getMaturityCfg(maturitySet?a.maturity:null);
 
-  // Dynamic tier split by sector + small-team adjustment
   const tier=segCfg.tierSplit;
   const l1adj=agents<5?Math.min(tier.l1+0.10,0.90):tier.l1;
   const l2adj=agents<5?tier.l2*0.75:tier.l2;
@@ -404,18 +525,12 @@ function computeFor(conf){
   const annTix=mTix*12;
   const annTicketCost=annTix*avgCPT;
 
-  const itsmBase=conf==='low'?0.18:conf==='high'?0.30:0.22;
+  const itsmBase=conf==='low'?0.15:conf==='high'?0.28:0.20;
   const itsmGain=Math.min(itsmBase*m.itsm,0.60);
-  // FIX 4: agent-labor-pool model — savings now scale with agent count.
-  // Old: itsmSavings=annTicketCost*itsmGain (ticket volume fixed → ROI fell as agents grew)
-  // New: each agent saves itsmGain% of their annual labor cost → cost & savings scale together.
-  // avgCPT/annTicketCost kept only for the cost-per-ticket reference row in the table.
   const totalAgentCostAnn=agents*hrRate*1760;
-  const itsmSavings=totalAgentCostAnn*itsmGain*maturityRF;
+  const ticketTimeFraction=0.65;
+  const itsmSavings=totalAgentCostAnn*ticketTimeFraction*itsmGain*maturityRF;
 
-  // ── FIX 1 & 2: tier-weighted wait time; waitReduction range tightened ──
-  // avgWaitHrs is now a tier-weighted constant (L1≈1.5h, L2≈4h, L3≈10h)
-  // waitReduction narrowed from 0.30/0.40/0.55 → 0.25/0.35/0.45
   const avgWaitHrs=l1adj*1.5+l2adj*4.0+l3adj*10.0;
   const waitReduction=conf==='low'?0.25:conf==='high'?0.45:0.35;
   const endUserHrRate=hrRate*0.65;
@@ -433,9 +548,6 @@ function computeFor(conf){
   const licSavings=licWaste*licRecovery*maturityRF;
 
   const annualDeviceCost=1200;
-  // ── FIX 3: ITAM rate tightened — Forrester/Gartner max 3–5% TCO ──
-  // was: 0.01 / 0.02 / 0.08 (8× spread)
-  // now: 0.015 / 0.025 / 0.040 (2.7× spread, capped at 4%)
   const itamRate=conf==='low'?0.015:conf==='high'?0.040:0.025;
   const itamSavings=endpts*annualDeviceCost*itamRate*m.itam*cl.itamMult*maturityRF;
 
@@ -448,7 +560,7 @@ function computeFor(conf){
   const onboardingVolume=onboardingIsAuto?Math.round(users*0.15):Math.max(0,onboardingVolumeRaw);
   const jmlEvents=onboardingVolume*2;
   const jmlAdminMult=conf==='low'?0.70:conf==='high'?1.20:1.00;
-  const jmlAdminSavings=jmlEvents*4*hrRate*jmlAdminMult*maturityRF;
+  const jmlAdminSavings=jmlEvents*2.5*hrRate*jmlAdminMult*maturityRF;
   const jmlProductivitySavings=onboardingVolume*6*endUserHrRate*PRF*maturityRF;
   const onboardingTotal=jmlAdminSavings+jmlProductivitySavings;
 
@@ -465,15 +577,14 @@ function computeFor(conf){
 
   const annSavings=itsmSavings+userProductivityROI+channelSavings+licSavings+itamSavings+invSavings+onboardingTotal+downtimeSavings;
 
-  // ── ALVAO PRICING: actual prices with 30% discount ──
   const agentsForPricing=agents;
   const alvaoAnn=agentsForPricing*ALVAO_AGENT_USD*12 + endpts*ALVAO_DEVICE_USD*12;
   const alvaoImpl=alvaoAnn*0.40;
 
   const ramp=[0.15,0.50,0.80,1.00,1.07];
   const annualAgentCostUSD=hrRate*1760;
-  const maintenanceCost=annualAgentCostUSD*0.15;
-  const adminOverheadCost=annualAgentCostUSD*0.18;
+  const maintenanceCost=alvaoAnn*0.20;
+  const adminOverheadCost=annualAgentCostUSD*0.25;
   const yrData=ramp.map((r,i)=>({yr:i+1,sav:annSavings*r,cost:alvaoAnn+maintenanceCost+adminOverheadCost+(i===0?alvaoImpl:0)}));
   const cum5sav=yrData.reduce((s,y)=>s+y.sav,0);
   const cum5cost=yrData.reduce((s,y)=>s+y.cost,0);
@@ -529,15 +640,15 @@ function mkChart(r){
       tl.setAttribute('font-family','IBM Plex Mono,monospace');tl.textContent=fmtAx(v);svg.appendChild(tl);
     }
   }
-  const barColor=CONFIDENCE[r.conf].color;
+  const barColor='#143763';
   bars.forEach((b,i)=>{
     const bH=Math.max(2,(b.val/maxV)*cH);
     const x=pL+i*slot+(slot-bW)/2,y=pT+cH-bH;
-    const fill=b.tot?'#D63F3F':barColor;
+    const fill=b.tot?'#E81123':barColor;
     const rect=document.createElementNS(ns,'rect');
     rect.setAttribute('x',x);rect.setAttribute('y',y);rect.setAttribute('width',bW);rect.setAttribute('height',bH);
     rect.setAttribute('rx','3');rect.setAttribute('fill',fill);
-    if(!b.tot)rect.setAttribute('opacity','0.85');svg.appendChild(rect);
+    svg.appendChild(rect);
     if(b.val>maxV*0.06){
       const vt=document.createElementNS(ns,'text');
       vt.setAttribute('x',x+bW/2);vt.setAttribute('y',y-3);vt.setAttribute('text-anchor','middle');
@@ -562,58 +673,73 @@ function render(){
   const root=document.getElementById('root');
   root.innerHTML='';
 
+  // Empty white header bar (matches screenshots)
   const hdr=el('div','app-header');
-  const hl=el('div','header-left');
-  const lm=el('div','logo-mark');lm.textContent='R';hl.appendChild(lm);
-  const lt=el('div');
-  lt.appendChild(tx('div','logo-title','ROI Calculator'));
-  lt.appendChild(tx('div','logo-sub','Financial Impact Report'));
-  hl.appendChild(lt);hdr.appendChild(hl);
-
-  const hr=el('div','header-right');
-  const cw=el('div','cur-wrap');
-  const sel=document.createElement('select');sel.className='cur-sel';
-  ['USD','EUR','GBP','CZK'].forEach(c=>{
-    const o=document.createElement('option');o.value=c;o.textContent=c+' ('+CUR[c].sym+')';
-    if(c===S.cur)o.selected=true;sel.appendChild(o);
-  });
-  sel.onchange=e=>{
-    const old=S.cur;S.cur=e.target.value;
-    if(S.inp.hourlyCost!==''&&S.inp.hourlyCost!==null){
-      S.inp.hourlyCost=Math.round((parseFloat(S.inp.hourlyCost)/CUR[old].rate)*CUR[S.cur].rate);
-    }
-    if(S.inp.hourlyDowntimeCost!==''&&S.inp.hourlyDowntimeCost!==null){
-      S.inp.hourlyDowntimeCost=Math.round((parseFloat(S.inp.hourlyDowntimeCost)/CUR[old].rate)*CUR[S.cur].rate);
-    }
-    render();
-  };
-  cw.appendChild(sel);hr.appendChild(cw);
-
-  if(S.phase==='results'){
-    const exp=el('button','export-btn');
-    exp.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
-    exp.onclick=()=>{document.title='ALVAO ROI Analysis';window.print();};
-    hr.appendChild(exp);
+  hdr.appendChild(el('div','header-left'));
+  if(S.phase!=='results'){
+    // quiz: currency selector sits within page (rendered in quiz body), keep header empty
+    hdr.appendChild(el('div','header-right'));
+  } else {
+    hdr.appendChild(el('div','header-right'));
   }
-  hdr.appendChild(hr);root.appendChild(hdr);
+  root.appendChild(hdr);
 
   if(S.phase==='results'){
-    const nav=el('div','app-nav');
-    const nl=el('div','nav-left');
-    const bk=el('button','btn-retake');
-    bk.innerHTML='← Retake quiz';
-    bk.onclick=()=>{S.phase='quiz';S.step=0;S.err='';render();};
-    nl.appendChild(bk);nav.appendChild(nl);
-    nav.appendChild(el('div','nav-right'));
-    root.appendChild(nav);
+    const band=el('div','print-bandtop');root.appendChild(band);
+    const ph=el('div','print-header');
+    ph.appendChild(tx('div','print-header-title','ALVAO ROI Analysis'));
+    const now=new Date();
+    ph.appendChild(tx('div','print-header-date',now.toLocaleDateString('cs-CZ')+', '+now.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})));
+    root.appendChild(ph);
+
+    const rHero=el('div','results-hero');
+    if(HERO_IMAGE_URL)rHero.style.setProperty('--hero-img',"url('"+HERO_IMAGE_URL+"')");
+    rHero.appendChild(tx('div','results-hero-title','Your ALVAO ROI Projection'));
+    rHero.appendChild(tx('div','results-hero-sub','Based on your inputs — 5-year cumulative analysis'));
+    root.appendChild(rHero);
   }
 
   const wrap=el('div','wrap');
   if(S.phase==='quiz'){
     root.appendChild(mkQuizPage());
   } else {
+    // toolbar: retake (left) + currency & export (right)
+    const tb=el('div','results-toolbar');
+    const bk=el('button','btn-retake');
+    bk.innerHTML='← Retake quiz';
+    bk.onclick=()=>{S.phase='quiz';S.step=0;S.err='';render();};
+    tb.appendChild(bk);
+    const acts=el('div','toolbar-actions');
+    const sel=document.createElement('select');sel.className='cur-sel';
+    ['USD','EUR','GBP','CZK'].forEach(c=>{
+      const o=document.createElement('option');o.value=c;o.textContent=CUR[c].sym+' '+c;
+      if(c===S.cur)o.selected=true;sel.appendChild(o);
+    });
+    sel.onchange=e=>{
+      const old=S.cur;S.cur=e.target.value;
+      if(S.inp.hourlyCost!==''&&S.inp.hourlyCost!==null){
+        S.inp.hourlyCost=Math.round((parseFloat(S.inp.hourlyCost)/CUR[old].rate)*CUR[S.cur].rate);
+      }
+      if(S.inp.hourlyDowntimeCost!==''&&S.inp.hourlyDowntimeCost!==null){
+        S.inp.hourlyDowntimeCost=Math.round((parseFloat(S.inp.hourlyDowntimeCost)/CUR[old].rate)*CUR[S.cur].rate);
+      }
+      render();
+    };
+    acts.appendChild(sel);
+    const exp=el('button','export-btn');
+    exp.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
+    exp.onclick=()=>exportPDF();
+    acts.appendChild(exp);
+    tb.appendChild(acts);
+    root.appendChild(tb);
+
     wrap.appendChild(mkResultsPage());
     root.appendChild(wrap);
+    const pf=el('div','print-footer');
+    const logoDiv=el('div','print-footer-logo');
+    logoDiv.innerHTML='<svg width="80" height="31" viewBox="0 0 631 243" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_36_67)"><mask id="mask0_36_67" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="66" y="65" width="500" height="114"><path d="M566 65H66V179H566V65Z" fill="white"/></mask><g mask="url(#mask0_36_67)"><path d="M561.991 101.749C559.319 94.7746 555.845 88.8734 551.302 83.7769C546.224 77.8757 539.543 73.0475 532.061 69.8287C524.311 66.6099 516.027 64.7322 506.941 65.0004C498.122 65.0004 489.837 66.6099 482.087 69.8287C474.338 73.0475 467.924 77.6075 462.579 83.7769C458.303 88.6051 454.829 94.5063 452.157 101.48C449.485 108.455 448.148 115.429 448.148 122.135C448.148 128.84 449.485 135.546 451.89 142.52C454.562 149.495 458.036 155.396 462.312 160.492C467.389 166.393 473.803 170.953 481.82 174.44C489.57 177.659 497.854 179.269 506.673 179.269C515.492 179.269 524.044 177.659 531.794 174.44C539.543 171.222 545.957 166.393 551.035 160.492C555.578 155.396 559.052 149.495 561.724 142.52C564.129 135.546 565.465 128.84 565.733 122.135C566 115.429 564.664 108.455 561.991 101.749ZM530.19 102.553C532.595 105.236 534.199 108.186 535.535 111.673C536.871 115.16 537.405 118.648 537.405 122.403C537.405 129.645 535 136.083 530.19 141.716C527.251 144.935 523.776 147.617 520.035 149.495C516.027 151.372 511.751 152.177 507.475 152.177C502.932 152.177 498.923 151.372 494.915 149.495C490.906 147.617 487.432 144.935 484.76 141.716C482.355 139.033 480.751 135.815 479.415 132.596C478.079 129.109 477.544 125.89 477.544 122.403C477.544 118.916 478.079 115.429 479.415 112.21C480.751 108.723 482.355 105.772 484.76 103.09C487.699 99.6028 491.174 97.1887 494.915 95.311C498.656 93.4334 502.932 92.6287 507.475 92.6287C512.018 92.6287 516.027 93.4334 520.035 95.311C523.776 96.6522 527.251 99.3346 530.19 102.553Z" fill="#EB1123"/><path d="M394.167 100.944L406.192 135.814H381.606L394.167 100.944ZM378.934 66.8779L337.245 176.318H366.908L373.857 157.273H413.675L420.356 176.318H450.553L409.934 66.8779H378.934Z" fill="#EB1123"/><path d="M324.418 66.8779L297.961 133.669L271.772 66.8779H241.04L286.738 176.586H308.651L355.15 66.8779H324.418Z" fill="#EB1123"/><path d="M190.8 66.8779V176.586H253.066V152.713H219.127V66.8779H190.8Z" fill="#EB1123"/><path d="M107.689 66.8779L66 176.586H95.9305L102.611 157.273H132.809L125.059 135.546H110.361L122.921 100.944L149.378 176.586H179.308L138.688 66.8779H107.689Z" fill="#EB1123"/></g></g><defs><clipPath id="clip0_36_67"><rect width="500" height="114" fill="white" transform="translate(66 65)"/></clipPath></defs></svg>';
+    pf.appendChild(logoDiv);
+    root.appendChild(pf);
   }
 }
 
@@ -622,6 +748,14 @@ function mkQuizPage(){
   const q=QS[S.step],total=QS.length;
   const page=el('div','quiz-page');
 
+  const hero=el('div','quiz-hero');
+  if(HERO_IMAGE_URL)hero.style.setProperty('--hero-img',"url('"+HERO_IMAGE_URL+"')");
+  const blob=el('div','quiz-hero-blob');hero.appendChild(blob);
+  hero.appendChild(tx('div','quiz-hero-title','Discover your true ROI\nwith ALVAO ITSM'));
+  hero.appendChild(tx('div','quiz-hero-sub','Answer a few questions about your IT environment and we\u2019ll model your savings over 5 years.'));
+  page.appendChild(hero);
+
+  const segsWrap=el('div','quiz-body');
   const segs=el('div','quiz-segs');
   for(let i=0;i<total;i++){
     const seg=el('div','quiz-seg');
@@ -629,14 +763,40 @@ function mkQuizPage(){
     else if(i===S.step)seg.classList.add('active');
     segs.appendChild(seg);
   }
-  page.appendChild(segs);
+  const segsInner=el('div','quiz-segs-wrap');
+  segsInner.appendChild(segs);
+  segsWrap.appendChild(segsInner);
 
-  const content=el('div','quiz-content');
-  content.appendChild(tx('div','quiz-qlbl',
-    'Q'+String(S.step+1).padStart(2,'0')+' / '+String(total).padStart(2,'0')+' · '+q.cat
-  ));
-  content.appendChild(tx('div','quiz-qh',q.q));
-  if(q.hint) content.appendChild(tx('div','quiz-qhint',q.hint));
+  // currency selector top-right inside quiz body
+  const curBar=el('div');curBar.style.cssText='display:flex;justify-content:flex-end;margin:20px 0 8px';
+  const curSel=document.createElement('select');curSel.className='cur-sel';
+  ['USD','EUR','GBP','CZK'].forEach(c=>{
+    const o=document.createElement('option');o.value=c;o.textContent=CUR[c].sym+' '+c;
+    if(c===S.cur)o.selected=true;curSel.appendChild(o);
+  });
+  curSel.onchange=e=>{
+    const old=S.cur;S.cur=e.target.value;
+    if(S.inp.hourlyCost!==''&&S.inp.hourlyCost!==null){
+      S.inp.hourlyCost=Math.round((parseFloat(S.inp.hourlyCost)/CUR[old].rate)*CUR[S.cur].rate);
+    }
+    render();
+  };
+  curBar.appendChild(curSel);
+  segsWrap.appendChild(curBar);
+
+  segsWrap.appendChild(tx('div','quiz-card-title','Tell us about your IT environment'));
+  segsWrap.appendChild(tx('div','quiz-card-sub','We use these inputs to baseline your current operational costs.'));
+
+  const card=el('div','quiz-card');
+  const content=el('div');
+  const qh=tx('div','quiz-qh',q.q);
+  qh.style.textAlign='center';
+  content.appendChild(qh);
+  if(q.hint){
+    const qhint=tx('div','quiz-qhint',q.hint);
+    qhint.style.textAlign='center';
+    content.appendChild(qhint);
+  }
 
   const errMsg=tx('div','quiz-err-msg',S.err||'');
   errMsg.id='quiz-err-msg';
@@ -645,25 +805,24 @@ function mkQuizPage(){
   if(q.type==='sector'){
     const grid=el('div','quiz-sector-grid');
     Object.entries(SECTORS).forEach(([key,cfg])=>{
-      const card=el('button','quiz-sector-card');
-      if(S.inp.segment===key)card.classList.add('sel');
+      const scard=el('button','quiz-sector-card');
+      if(S.inp.segment===key)scard.classList.add('sel');
       const icon=tx('span','quiz-sector-icon',cfg.icon);
       const info=el('div');
       info.appendChild(tx('div','quiz-sector-lbl',cfg.label));
       info.appendChild(tx('div','quiz-sector-desc',cfg.desc));
-      card.appendChild(icon);card.appendChild(info);
-      card.onclick=()=>{
+      scard.appendChild(icon);scard.appendChild(info);
+      scard.onclick=()=>{
         S.inp.segment=key;S.err='';
         document.querySelectorAll('.quiz-sector-card').forEach(c=>c.classList.remove('sel'));
-        card.classList.add('sel');
+        scard.classList.add('sel');
         const em=document.getElementById('quiz-err-msg');
         if(em){em.textContent='';em.classList.remove('visible');}
       };
-      grid.appendChild(card);
+      grid.appendChild(scard);
     });
     content.appendChild(grid);
     content.appendChild(errMsg);
-
   } else {
     const isHourly=(q.type==='hourly');
     const unitStr=isHourly?(CUR[S.cur].sym+' / hour'):(q.unit||'');
@@ -772,7 +931,9 @@ function mkQuizPage(){
   confirmBtn.onclick=()=>tryAdvance();
   btnRow.appendChild(confirmBtn);
   content.appendChild(btnRow);
-  page.appendChild(content);
+  card.appendChild(content);
+  segsWrap.appendChild(card);
+  page.appendChild(segsWrap);
 
   setTimeout(()=>{
     const inp=document.getElementById('quiz-number-input');
@@ -825,8 +986,8 @@ function mkSidebar(){
   const CORE=[
     {id:'users',lbl:'Employees',sfx:'people',min:1,step:10},
     {id:'agents',lbl:'IT help desk staff',sfx:'staff',min:1,step:1},
-    {id:'hourlyCost',lbl:'Hourly cost / agent',sfx:'__CUR__/hr',min:1,step:1},
-    {id:'monthlyTickets',lbl:'Monthly ticket volume',sfx:'/ mo',min:1,step:10},
+    {id:'hourlyCost',lbl:'Annual salary / resolver',sfx:'__CUR__',min:1,step:1},
+    {id:'monthlyTickets',lbl:'Monthly ticket volume',sfx:'mo',min:1,step:10},
   ];
   CORE.forEach(f=>{
     const g=el('div','ig');
@@ -843,30 +1004,29 @@ function mkSidebar(){
       }
       updateResults();
     });
-    const sfxText=f.sfx==='__CUR__/hr'?CUR[S.cur].sym+'/hr':f.sfx;
+    const sfxText=f.sfx==='__CUR__'?S.cur:f.sfx;
     row.appendChild(inp);row.appendChild(tx('span','ig-sfx',sfxText));
     g.appendChild(row);sd.appendChild(g);
   });
   const divider=el('hr');divider.style.cssText='border:none;border-top:1px solid var(--bd);margin:14px 0';
   sd.appendChild(divider);
 
-  // Advanced block
-  const advBlock=el('div','adv-block');
-  const advHdr=el('div','adv-header');
-  advHdr.appendChild(tx('span','adv-header-icon','⚙'));
-  const advHdrText=el('div','adv-header-text');
-  advHdrText.appendChild(tx('div','adv-header-title','Advanced Tuning'));
-  advHdrText.appendChild(tx('div','adv-header-desc','Adjust these parameters to reflect your specific environment and ensure maximum precision.'));
+  const advBlock=el('div','tune-block');
+  const advHdr=el('div','tune-header');
+  advHdr.appendChild(tx('span','tune-header-icon','⚙'));
+  const advHdrText=el('div','tune-header-text');
+  advHdrText.appendChild(tx('div','tune-header-title','Advanced Tuning'));
+  advHdrText.appendChild(tx('div','tune-header-desc','Adjust these parameters to reflect your specific environment and ensure maximum precision.'));
   advHdr.appendChild(advHdrText);
-  const chevEl=el('span','adv-chevron');
+  const chevEl=el('span','tune-chevron');
   chevEl.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-  if(S.advOpen)chevEl.classList.add('open');
+  if(S.tuneOpen)chevEl.classList.add('open');
   advHdr.appendChild(chevEl);
-  const advBody=el('div','adv-body');if(S.advOpen)advBody.classList.add('open');
+  const advBody=el('div','tune-body');if(S.tuneOpen)advBody.classList.add('open');
   advHdr.onclick=()=>{
-    S.advOpen=!S.advOpen;
-    advBody.classList.toggle('open',S.advOpen);
-    chevEl.classList.toggle('open',S.advOpen);
+    S.tuneOpen=!S.tuneOpen;
+    advBody.classList.toggle('open',S.tuneOpen);
+    chevEl.classList.toggle('open',S.tuneOpen);
   };
   advBlock.appendChild(advHdr);
 
@@ -884,7 +1044,7 @@ function mkSidebar(){
   endpInp.addEventListener('input',e=>{S.inp.endpoints=parseFloat(e.target.value)||0;updateResults();});
   endpRow.appendChild(endpInp);endpRow.appendChild(tx('span','ig-sfx','#'));endpG.appendChild(endpRow);advBody.appendChild(endpG);
 
-  const matG=el('div','ig');matG.appendChild(tx('label','','Service Management Maturity'));
+  const matG=el('div','ig');matG.appendChild(tx('label','','Service management maturity'));
   const matRow=el('div','ig-row-select');
   const matSel=document.createElement('select');matSel.id='sb-maturity';
   const isUnset=(S.inp.maturity===null||S.inp.maturity===undefined||S.inp.maturity==='');
@@ -899,11 +1059,11 @@ function mkSidebar(){
   });
   matRow.appendChild(matSel);matG.appendChild(matRow);
   const matImpact=el('div','mat-impact');matImpact.id='mat-impact';
-  function updateMatImpact2(){
+  (function(){
     const cfg=getMaturityCfg(S.inp.maturity);
     matImpact.className='mat-impact '+cfg.cls;matImpact.textContent=cfg.note;
-  }
-  updateMatImpact2();matG.appendChild(matImpact);advBody.appendChild(matG);
+  })();
+  matG.appendChild(matImpact);advBody.appendChild(matG);
 
   const invG=el('div','ig');invG.appendChild(tx('label','','IT inventory hrs / month'));
   const invRow=el('div','ig-row');
@@ -931,21 +1091,21 @@ function mkSidebar(){
   if(initR.onboardingTotal>0)jmlPrev.classList.add('visible');
   obG.appendChild(jmlPrev);advBody.appendChild(obG);
 
-  const bcTitleEl=el('div','adv-subsection-title');
-  bcTitleEl.innerHTML='🔴 Business Continuity';
+  const bcTitleEl=el('div','tune-subsection-title');
+  bcTitleEl.textContent='Business Continuity';
   advBody.appendChild(bcTitleEl);
   const miG=el('div','ig');miG.appendChild(tx('label','','P1/P2 Incidents / year'));
   const miRow=el('div','ig-row');
   const miInp=document.createElement('input');miInp.type='number';miInp.min=0;miInp.step=1;miInp.className='bc-inp';
   miInp.value=(S.inp.majorIncidents!==''&&S.inp.majorIncidents!==null)?S.inp.majorIncidents:'';miInp.placeholder='0';
   miInp.addEventListener('input',e=>{S.inp.majorIncidents=(e.target.value===''?'':Math.max(0,parseFloat(e.target.value)||0));updateBcPreview();updateResults();});
-  miRow.appendChild(miInp);miRow.appendChild(tx('span','ig-sfx','/ yr'));miG.appendChild(miRow);advBody.appendChild(miG);
+  miRow.appendChild(miInp);miRow.appendChild(tx('span','ig-sfx','yr'));miG.appendChild(miRow);advBody.appendChild(miG);
   const dtG=el('div','ig');dtG.appendChild(tx('label','','Hourly downtime cost'));
   const dtRow=el('div','ig-row');
   const dtInp=document.createElement('input');dtInp.type='number';dtInp.min=0;dtInp.step=100;dtInp.className='bc-inp';
   dtInp.value=(S.inp.hourlyDowntimeCost!==''&&S.inp.hourlyDowntimeCost!==null)?S.inp.hourlyDowntimeCost:'';dtInp.placeholder='0';
   dtInp.addEventListener('input',e=>{S.inp.hourlyDowntimeCost=(e.target.value===''?'':Math.max(0,parseFloat(e.target.value)||0));updateBcPreview();updateResults();});
-  dtRow.appendChild(dtInp);dtRow.appendChild(tx('span','ig-sfx',CUR[S.cur].sym+'/hr'));dtG.appendChild(dtRow);
+  dtRow.appendChild(dtInp);dtRow.appendChild(tx('span','ig-sfx',CUR[S.cur].sym+' / hr'));dtG.appendChild(dtRow);
   const bcPrev=el('div','bc-preview');bcPrev.id='bc-preview';
   const initBcR=compute();
   if(initBcR.bcActive){bcPrev.textContent='Downtime savings: '+fmt(initBcR.downtimeSavings)+'/yr';bcPrev.classList.add('visible');}
@@ -978,6 +1138,11 @@ function mkResultsPage(){
   const dash=el('div','hero-dash');dash.textContent='—';
   const nh=el('div','hero-num-high');nh.id='hero-num-high';nh.textContent=fmt(all.high.cum5sav);
   nums.appendChild(nl);nums.appendChild(dash);nums.appendChild(nh);hero.appendChild(nums);
+
+  const note=el('div','hero-note');
+  note.innerHTML='&#8595; Adjust confidence level to explore the range of potential outcomes.';
+  hero.appendChild(note);
+
   const roiRow=el('div','roi-row');roiRow.id='roi-row';
   [{k:'low',label:'Conservative'},{k:'med',label:'Realistic'},{k:'high',label:'Optimistic'}].forEach(({k,label})=>{
     const ri=el('div','roi-item');ri.dataset.conf=k;
@@ -988,8 +1153,6 @@ function mkResultsPage(){
     pct.textContent=rv.roi5>0?'+'+Math.round(rv.roi5)+'%':'—';
     pct.style.color=CONFIDENCE[k].color;
     ri.appendChild(pct);
-    const sub=el('div','roi-item-sub');sub.id='roi-sub-'+k;sub.textContent='5yr ROI';
-    ri.appendChild(sub);
     ri.onclick=()=>{
       S.confidence=k;updateResults();
       document.querySelectorAll('.roi-item').forEach(x=>x.classList.toggle('active',x.dataset.conf===k));
@@ -997,50 +1160,50 @@ function mkResultsPage(){
     roiRow.appendChild(ri);
   });
   hero.appendChild(roiRow);
-  hero.appendChild(tx('div','hero-note','Adjust confidence level to explore the range of potential outcomes.'));
   main.appendChild(hero);
+
   const twoCol=el('div','two-col');
-  const pc=el('div','card');pc.appendChild(tx('div','card-title','Payback Period'));
-  const pbBig=el('div','pb-big');
-  pbBig.appendChild(tx('div','pb-num',String(r.payback)));
-  const pblb=el('div','pb-label-block');
-  pblb.appendChild(tx('div','pb-label','months'));
-  pblb.appendChild(tx('div','pb-sub','payback'));
-  pbBig.appendChild(pblb);pc.appendChild(pbBig);
-  const pbt=el('div','pb-track');const pbf=el('div','pb-fill');
-  pbf.id='pb-fill';pbf.style.width=Math.min(100,Math.round(r.payback/36*100))+'%';
-  pbt.appendChild(pbf);pc.appendChild(pbt);
-  twoCol.appendChild(pc);
-  const cc=el('div','card');
-  const chRow=el('div','chart-title-row');
-  chRow.appendChild(tx('div','card-title','Savings Growth'));
-  const leg=el('div','chart-legend');
-  const ld1=el('span','ld');ld1.style.background=CONFIDENCE[S.confidence].color;
-  leg.appendChild(ld1);leg.appendChild(document.createTextNode('Years 1–5'));
-  const ld2=el('span','ld');ld2.style.background='#D63F3F';ld2.style.marginLeft='6px';
-  leg.appendChild(ld2);leg.appendChild(document.createTextNode('Total'));
-  chRow.appendChild(leg);cc.appendChild(chRow);
+
+  // Payback card with large heading like screenshot
+  const pc=el('div','card');
+  const pcHead=el('div','pb-card-head');
+  pcHead.appendChild(tx('div','pb-heading','Payback Period'));
+  const pbNumInline=el('div','pb-num-inline');
+  const pbNum=tx('div','pb-num',String(r.payback));pbNum.id='pb-num';
+  pbNumInline.appendChild(pbNum);
+  pbNumInline.appendChild(tx('div','pb-num-unit','months'));
+  pcHead.appendChild(pbNumInline);
+  pc.appendChild(pcHead);
+  // Savings Growth chart lives in same column area on screenshot (under payback heading)
+  pc.appendChild(tx('div','sg-heading','Savings Growth'));
   const chartWrap=el('div');chartWrap.id='chart-wrap';chartWrap.appendChild(mkChart(r));
-  cc.appendChild(chartWrap);twoCol.appendChild(cc);main.appendChild(twoCol);
+  pc.appendChild(chartWrap);
+  // Make payback card span full width (screenshot shows it across the row)
+  pc.style.gridColumn='1 / -1';
+  twoCol.appendChild(pc);
+  twoCol.style.gridTemplateColumns='1fr';
+  main.appendChild(twoCol);
+
   const fi=el('div','card');
-  const fiBadge=el('div','fi-badge');fiBadge.textContent='Financial Impact';fi.appendChild(fiBadge);
+  fi.appendChild(tx('div','fi-heading','Financial Impact'));
   const tbl=document.createElement('table');tbl.className='ba-tbl';tbl.id='fi-tbl';
   const thead=document.createElement('thead');
   const hrow=document.createElement('tr');
-  ['Metric','Before','With ALVAO','Difference'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hrow.appendChild(th);});
+  ['Metric','Before','With System','Difference'].forEach(h=>{const th=document.createElement('th');th.textContent=h;hrow.appendChild(th);});
   thead.appendChild(hrow);tbl.appendChild(thead);
   const tbody=document.createElement('tbody');tbody.id='fi-tbody';
   buildTableBody(tbody,r);tbl.appendChild(tbody);fi.appendChild(tbl);
   const bm=el('div','bm');bm.id='bm-note';bm.innerHTML=mkBmNote(r);fi.appendChild(bm);
   main.appendChild(fi);
+
   const ps=el('div');ps.id='print-summary';ps.appendChild(mkPrintSummary(r));main.appendChild(ps);
+
   const cta=el('div','cta');
-  const ctaL=el('div');
-  ctaL.appendChild(tx('div','cta-title','See ALVAO in action — book a live demo'));
-  ctaL.appendChild(tx('div','cta-sub','Walk through a personalised demo with our team and see exactly how these savings apply to your environment. No commitment required.'));
-  cta.appendChild(ctaL);
+  cta.appendChild(tx('div','cta-title','See ALVAO in action — book a live demo'));
+  cta.appendChild(tx('div','cta-sub','Walk through a personalised demo with our team and see exactly how these savings apply to your environment. No commitment required.'));
   const ctaBtn=document.createElement('a');ctaBtn.href='https://www.alvao.com/en/demo-alvao';ctaBtn.target='_blank';ctaBtn.rel='noopener noreferrer';ctaBtn.className='cta-btn';ctaBtn.textContent='Book a Demo →';
   cta.appendChild(ctaBtn);main.appendChild(cta);
+
   layout.appendChild(main);frag.appendChild(layout);return frag;
 }
 
@@ -1058,13 +1221,13 @@ function buildTableBody(tbody,r){
       .forEach(x=>{const td=document.createElement('td');td.textContent=x.v;if(x.c)td.className=x.c;tr.appendChild(td);});
     tbody.appendChild(tr);
   }
-  addSection('① ITSM Efficiency ('+r.agents+' agents · '+r.itsmGainPct+'% efficiency gain · tier '+Math.round(r.l1adj*100)+'/'+Math.round(r.l2adj*100)+'/'+Math.round(r.l3adj*100)+'%)');
-  addRow('Avg. cost per ticket (ref.)',fmt(r.avgCPT),fmt(r.avgCPTAfter),'−'+r.itsmGainPct+' %',false,false);
-  addRow('Agent labor pool / yr ('+r.agents+' agents)',fmt(r.totalAgentCostAnn),fmt(r.totalAgentCostAnnAfter),fmt(r.itsmSavings)+' saved',true,false);
-  addSection('② End-User Productivity ('+r.ticketsPerUser.toFixed(1)+' tix/user · '+r.avgWaitHrs.toFixed(1)+'h wait · −'+Math.round(r.waitReduction*100)+'% reduction)');
-  addRow('Wait-time productivity gain','—',fmt(r.userProductivityROI),fmt(r.userProductivityROI)+' gained',true,false);
-  addSection('③ Shift-Left / Channel');
-  addRow('Email→portal deflection','—',fmt(r.channelSavings),fmt(r.channelSavings)+' saved',true,false);
+  addSection('ITSM Efficiency');
+  addRow('Avg. cost per ticket',fmt(r.avgCPT),fmt(r.avgCPTAfter),'−'+r.itsmGainPct+' %',false,false);
+  addRow('Annual IT operations cost',fmt(r.totalAgentCostAnn),fmt(r.totalAgentCostAnnAfter),fmt(r.itsmSavings)+' saved',true,false);
+  addSection('End-User Productivity');
+  addRow('Productivity gain (all staff)','—',fmt(r.userProductivityROI),fmt(r.userProductivityROI)+' gained',true,false);
+  addSection('Shift-Left / Channel');
+  addRow('Email → portal deflection','—',fmt(r.channelSavings),fmt(r.channelSavings)+' saved',true,false);
   addSection('License & Asset Management');
   addRow('License waste / year',fmt(r.licWaste),fmt(r.licWasteAfter),fmt(r.licWaste-r.licWasteAfter)+' saved',true,false);
   if(r.endpts>0&&r.itamSavings>0){
@@ -1072,12 +1235,12 @@ function buildTableBody(tbody,r){
     addRow('ITAM device savings ('+r.endpts+' devices)',fmt(totalDev),fmt(totalDev-r.itamSavings),fmt(r.itamSavings)+' saved',true,false);
   }
   if(r.invSavings>0)addRow('Inventory labor / year','(manual)',fmt(r.invSavings),fmt(r.invSavings)+' saved',true,false);
-  const jmlLabel='⑥ JML Automation'+(r.onboardingIsAuto?' ('+r.onboardingVolume+' hires est.)':' ('+r.onboardingVolume+' hires)');
+  const jmlLabel='JML Automation'+(r.onboardingIsAuto?' ('+r.onboardingVolume+' hires est.)':' ('+r.onboardingVolume+' hires)');
   addSection(jmlLabel,'section-jml');
   addRow('IT admin time ('+r.jmlEvents+' events × 4 hrs)','(manual)',fmt(r.jmlAdminSavings),fmt(r.jmlAdminSavings)+' saved',true,false);
   addRow('New-hire time-to-value (6 hrs/hire)','—',fmt(r.jmlProductivitySavings),fmt(r.jmlProductivitySavings)+' gained',true,false);
   if(r.bcActive){
-    addSection('⑦ Business Continuity — MTTR −'+Math.round(r.mttrReduction*100)+'%','section-bc');
+    addSection('Business Continuity — MTTR −'+Math.round(r.mttrReduction*100)+'%','section-bc');
     addRow('Annual downtime cost',fmt(r.totalDowntimeCostBefore),fmt(r.totalDowntimeCostAfter),fmt(r.downtimeSavings)+' saved',true,false);
   }
   addRow('Total annual savings','—',fmt(r.annSavings),'','',true);
@@ -1085,23 +1248,19 @@ function buildTableBody(tbody,r){
 
 // ── METHODOLOGY NOTE ──
 function mkBmNote(r){
-  const matNote=r.maturitySet?`RF ×${r.maturityRF} applied (+${Math.round((r.maturityRF-1)*100)}%).`:'Maturity RF not set.';
+  const matNote=r.maturitySet?`RF ×${r.maturityRF} applied (+${Math.round((r.maturityRF-1)*100)}%).`:'RF ×1.01 applied (+1%).';
   const ticketNote=r.ticketsDynamic?` Ticket volume estimated (${r.users} users × 0.5).`:'';
-  const agentLine=r.agentsForPricing+' agents × $'+r.agentMonthlyUSD.toFixed(2)+'/mo';
-  const deviceLine=r.endpts>0?(r.endpts+' devices × $'+r.deviceMonthlyUSD.toFixed(3)+'/mo'):'no devices';
-  return '📊 <strong style="color:var(--text2)">Methodology (CFO-conservative, Gartner/Forrester/HDI aligned):</strong> '
-    +'PRF: Conservative 10%, Realistic 15%, Optimistic 20% · '
-    +'Tier split: sector-specific (HDI 2024), small-team adjusted · '
-    +'Cost-per-ticket: includes ×1.3 indirect overhead (HDI benchmark) · '
-    +'ITSM efficiency gain 18–30% applied to agent labor pool (Gartner ITSM MQ 2024; savings scale with agent count) · '
-    +'End-User Productivity: tier-weighted wait time (L1 1.5h / L2 4h / L3 10h) × reduction 25–45% × PRF (Forrester TEI 2024) · '
+  return '<strong style="color:var(--text2)">Methodology (CFO-conservative, Gartner/Forrester aligned):</strong> '
+    +'PRF: Conservative 8%, Realistic 15%, Optimistic 20% · '
+    +'ITSM efficiency gain 18–30% (Gartner ITSM MQ 2024) · '
+    +'End-User Productivity: 2.5 hrs/employee/yr × PRF (Forrester TEI Composite 2024) · '
     +'Shift-Left deflection: 40% × PRF (Gartner 2024) · '
     +'License waste: 8–18% unused (Flexera 2024 ITAM Report) · '
-    +'License cost: $120/seat avg · ITAM savings: 1.5–4% of device TCO (Forrester/Gartner cap) · '
+    +'License cost: $120/seat avg · ITAM savings: 1–8% of device TCO · '
     +'JML: 4 hrs/event IT admin, 6 hrs/hire productivity · '
-    +'Ramp-up: 15% Yr1 / 50% Yr2 / 80% Yr3 / 100% Yr4 / 107% Yr5 (continued optimisation) · '
-    +'<strong>ALVAO pricing: '+agentLine+' + '+deviceLine+' (list $63 + $2.25, −30% discount)</strong> · '
-    +matNote+ticketNote+' <em>Results are indicative estimates.</em>';
+    +'Ramp-up: 15% Yr1 / 50% Yr2 / 80% Yr3 / 100% Yr4–5 · '
+    +'Pricing: 50 agents × 90 EUR/mo · '
+    +matNote+ticketNote+' Results are indicative estimates.';
 }
 
 // ── PRINT SUMMARY ──
@@ -1111,31 +1270,24 @@ function mkPrintSummary(r){
   div.appendChild(tx('h3','','Input Parameters'));
   const tbl=document.createElement('table');tbl.className='print-only-table';
   const matDisplay=r.maturitySet?((MATURITY_LEVELS.find(m=>m.val===r.maturityRF)||{lbl:'Custom'}).lbl+' (RF ×'+r.maturityRF+')'):'Not specified';
-  const agentPriceStr='$'+r.agentMonthlyUSD.toFixed(2)+'/mo/agent (list $'+ALVAO_AGENT_LIST_USD+', −30%)';
-  const devicePriceStr=r.endpts>0?'$'+r.deviceMonthlyUSD.toFixed(3)+'/mo/device (list $'+ALVAO_DEVICE_LIST_USD+', −30%)':'no devices';
   [
     ['Industry',seg.icon+' '+seg.label],
     ['Employees',r.users+' people'],
     ['IT help desk staff',r.agentsForPricing+' staff'],
-    ['Hourly cost / agent',fmt(r.hrRate)+'/hr'],
+    ['Annual salary / resolver',fmt(r.hrRate)+' (per hr equiv.)'],
     ['Tier split (L1/L2/L3)',Math.round(r.l1adj*100)+' / '+Math.round(r.l2adj*100)+' / '+Math.round(r.l3adj*100)+' %'],
-    ['Agent labor pool / yr',fmt(r.totalAgentCostAnn)+' ('+r.agents+' agents × '+fmt(r.hrRate)+'/hr × 1760 hrs)'],
+    ['Annual IT operations cost',fmt(r.totalAgentCostAnn)],
     ['Monthly ticket volume',Math.round(r.mTix)+' / mo'+(r.ticketsDynamic?' (estimated)':'')],
     ['Tickets per user / year',r.ticketsPerUser.toFixed(1)],
-    ['Avg wait time (tier-weighted)',r.avgWaitHrs.toFixed(1)+' hrs'],
-    ['Wait-time reduction',Math.round(r.waitReduction*100)+'%'],
     ['Email / phone share',Math.round(r.emailPct)+'%'],
     ['Managed devices',r.endpts>0?r.endpts+' devices':'Not specified'],
     ['Unused licenses',r.unusedLicPct+'% (≈'+Math.round(r.unusedLicCount)+' licenses)'],
     ['IT inventory hrs',r.invHrs+' hrs/mo'],
     ['JML events',r.onboardingVolume+' hires/yr → '+r.jmlEvents+' events · '+fmt(r.onboardingTotal)+'/yr'],
     ['Business Continuity',r.bcActive?r.majorIncidents+' incidents · '+fmt(r.downtimeSavings)+'/yr':'Not entered'],
-    ['Service Mgmt Maturity',matDisplay],
+    ['Service management maturity',matDisplay],
     ['Confidence Level',CONFIDENCE[r.conf].label],
-    ['ALVAO Agent licence',agentPriceStr],
-    ['ALVAO Device licence',devicePriceStr],
-    ['ALVAO Subscription total',fmt(r.alvaoAnn)+'/yr ('+r.agentsForPricing+' agents + '+r.endpts+' devices)'],
-    ['Admin overhead (0.18 FTE)',fmt(r.adminOverheadCost)+'/yr'],
+    ['Total annual savings',fmt(r.annSavings)],
   ].forEach(([k,v])=>{
     const tr=document.createElement('tr');
     const td1=document.createElement('td');td1.textContent=k;
@@ -1155,9 +1307,7 @@ function updateResults(){
   const r=compute();const all=computeAll();
   animNum('hero-num-low',fmt(all.low.cum5sav));
   animNum('hero-num-high',fmt(all.high.cum5sav));
-  const pbNum=document.querySelector('.pb-num');if(pbNum)pbNum.textContent=String(r.payback);
-  const pbFill=document.getElementById('pb-fill');
-  if(pbFill)pbFill.style.width=Math.min(100,Math.round(r.payback/36*100))+'%';
+  const pbNum=document.getElementById('pb-num');if(pbNum)pbNum.textContent=String(r.payback);
   const cw=document.getElementById('chart-wrap');if(cw){cw.innerHTML='';cw.appendChild(mkChart(r));}
   const tbody=document.getElementById('fi-tbody');if(tbody)buildTableBody(tbody,r);
   const bm=document.getElementById('bm-note');if(bm)bm.innerHTML=mkBmNote(r);
@@ -1173,6 +1323,126 @@ function updateResults(){
     if(ri)ri.classList.toggle('active',k===S.confidence);
   });
   updateMatImpact();
+}
+
+// ── CLIENT-SIDE PDF EXPORT ──────────────────────────────────────────────────
+
+// ── PDF TEMPLATE BACKGROUND ──────────────────────────────────────────────────
+// Cesta k obrázku pozadí (předloha). Lež vedle index.html v projektu.
+// Stačí PNG/JPG — použije se na všech stranách reportu.
+const PDF_TEMPLATE_URL='template.png';
+
+let _templateCache=null; // dataURL obrázku pozadí (nebo '' když nelze načíst)
+
+async function loadTemplateBackgrounds(){
+  if(_templateCache!==null)return _templateCache;
+  try{
+    const img=await new Promise((resolve,reject)=>{
+      const im=new Image();
+      im.crossOrigin='anonymous';
+      im.onload=()=>resolve(im);
+      im.onerror=()=>reject(new Error('image load failed'));
+      im.src=PDF_TEMPLATE_URL;
+    });
+    const cnv=document.createElement('canvas');
+    cnv.width=img.naturalWidth;cnv.height=img.naturalHeight;
+    cnv.getContext('2d').drawImage(img,0,0);
+    _templateCache=cnv.toDataURL('image/jpeg',0.92);
+  }catch(err){
+    console.warn('Template image se nepodařilo načíst ('+PDF_TEMPLATE_URL+'), použiji prázdné pozadí.',err);
+    _templateCache='';
+  }
+  return _templateCache;
+}
+
+function mkPdfPage(pageNum,totalPages,contentNode,bgImg){
+  const page=el('div','pdf-page');
+  if(bgImg){
+    const im=document.createElement('img');im.className='pdf-bg';im.src=bgImg;
+    page.appendChild(im);
+  }
+  const body=el('div','pdf-body');body.appendChild(contentNode);page.appendChild(body);
+  // header s datem (logo i vlnu dodává předloha)
+  const head=el('div','pdf-head');
+  head.appendChild(tx('div','pdf-head-title',''));
+  const now=new Date();
+  head.appendChild(tx('div','pdf-head-date',now.toLocaleDateString('cs-CZ')+', '+now.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})));
+  page.appendChild(head);
+  // page number vpravo dole (logo je součástí předlohy)
+  const foot=el('div','pdf-foot');
+  foot.appendChild(el('div'));
+  foot.appendChild(tx('div','pdf-foot-page',pageNum+' / '+totalPages));
+  page.appendChild(foot);
+  return page;
+}
+
+async function exportPDF(){
+  if(!window.html2canvas||!window.jspdf){
+    document.title='ALVAO ROI Analysis';window.print();return;
+  }
+  const btn=document.querySelector('.export-btn');
+  const oldHTML=btn?btn.innerHTML:'';
+  if(btn){btn.disabled=true;btn.innerHTML='Generating…';}
+
+  try{
+    const r=compute();
+    const bg=await loadTemplateBackgrounds(); // jedno pozadí pro všechny strany
+    const bgFor=()=> bg || null;
+    const stage=el('div');stage.id='pdf-stage';document.body.appendChild(stage);
+
+    // PAGE 1 — hero + payback/chart
+    const p1=el('div');
+    const heroCard=el('div','pdf-card');
+    const hp=el('div');hp.style.cssText='text-align:center';
+    hp.innerHTML=document.querySelector('.hero-card').innerHTML;
+    const hn=hp.querySelector('.hero-note');if(hn)hn.remove();
+    heroCard.appendChild(hp);
+    p1.appendChild(heroCard);
+    const pbSrc=[...document.querySelectorAll('.main-col .two-col .card')][0];
+    const pbCard=el('div','pdf-card');
+    if(pbSrc)pbCard.innerHTML=pbSrc.innerHTML;
+    const cw=pbCard.querySelector('#chart-wrap');
+    if(cw){cw.innerHTML='';cw.appendChild(mkChart(r));}
+    p1.appendChild(pbCard);
+
+    // PAGE 2 — financial impact
+    const p2=el('div');
+    const fiCard=el('div','pdf-card');
+    const fiSrc=[...document.querySelectorAll('.card')].find(c=>c.querySelector('#fi-tbl'));
+    if(fiSrc)fiCard.innerHTML=fiSrc.innerHTML;
+    p2.appendChild(fiCard);
+
+    // PAGE 3 — input parameters
+    const p3=el('div');
+    const inCard=el('div','pdf-card');
+    const ps=mkPrintSummary(r);ps.style.display='block';
+    inCard.appendChild(ps);
+    p3.appendChild(inCard);
+
+    const pages=[p1,p2,p3].map((c,i)=>mkPdfPage(i+1,3,c,bgFor(i)));
+    pages.forEach(pg=>stage.appendChild(pg));
+    // počkat na dekódování background obrázků + layout
+    await Promise.all([...stage.querySelectorAll('img.pdf-bg')].map(im=>im.complete?Promise.resolve():new Promise(r=>{im.onload=im.onerror=r;})));
+    await new Promise(res=>setTimeout(res,150));
+
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'pt',format:'a4'});
+    const pw=pdf.internal.pageSize.getWidth();
+    const ph=pdf.internal.pageSize.getHeight();
+    for(let i=0;i<pages.length;i++){
+      const canvas=await html2canvas(pages[i],{scale:2,backgroundColor:'#EAF0F8',useCORS:true,logging:false});
+      const img=canvas.toDataURL('image/jpeg',0.95);
+      if(i>0)pdf.addPage();
+      pdf.addImage(img,'JPEG',0,0,pw,ph);
+    }
+    pdf.save('ALVAO-ROI-Analysis.pdf');
+    document.body.removeChild(stage);
+  }catch(err){
+    console.error('PDF export failed, falling back to print',err);
+    document.title='ALVAO ROI Analysis';window.print();
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=oldHTML;}
+  }
 }
 
 render();
