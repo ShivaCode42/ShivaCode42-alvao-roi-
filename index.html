@@ -391,6 +391,41 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 .pdf-card{background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(20,55,99,.09),0 2px 6px rgba(20,55,99,.05);padding:26px 30px;margin-bottom:12px}
 .pdf-foot{position:absolute;bottom:200px;left:48px;right:48px;display:flex;justify-content:space-between;align-items:flex-end;z-index:2}
 .pdf-foot-page{font-size:12px;color:#808191}
+
+/* ── HUBSPOT EXPORT GATE MODAL ── */
+.hs-modal-overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:flex-start;justify-content:center;background:rgba(20,55,99,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);padding:40px 16px;overflow-y:auto}
+.hs-modal-overlay.open{display:flex}
+.hs-modal{background:#fff;border-radius:16px;width:100%;max-width:520px;box-shadow:0 24px 70px rgba(0,0,0,.32);padding:30px 34px 34px;position:relative;animation:hsModalIn .24s ease;margin:auto}
+@keyframes hsModalIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.hs-modal-close{position:absolute;top:12px;right:15px;background:none;border:none;font-size:27px;line-height:1;color:var(--text3);cursor:pointer;font-family:inherit;padding:4px 6px;transition:color .12s}
+.hs-modal-close:hover{color:var(--text)}
+.hs-modal-head{margin-bottom:20px;padding-right:24px}
+.hs-modal-title{font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.3px;margin-bottom:6px}
+.hs-modal-sub{font-size:13.5px;color:var(--text4);line-height:1.55}
+.hs-config-warn{font-size:13px;color:#92400e;background:#FEF9EC;border:1px solid #FDE68A;border-radius:8px;padding:12px 14px;line-height:1.5}
+.hs-config-warn b{font-weight:700}
+.hs-loading-msg{font-size:13px;color:var(--text4);text-align:center;padding:28px 8px}
+/* HubSpot form styling overrides */
+#hubspot-form-container .hs-form-field{margin-bottom:14px}
+#hubspot-form-container label{font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block}
+#hubspot-form-container .hs-form-required{color:var(--red);margin-left:2px}
+#hubspot-form-container input[type=text],
+#hubspot-form-container input[type=email],
+#hubspot-form-container input[type=tel],
+#hubspot-form-container input[type=number],
+#hubspot-form-container select,
+#hubspot-form-container textarea{width:100%!important;padding:10px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:14px;font-family:'IBM Plex Sans',sans-serif;color:var(--text);outline:none;background:#fff;transition:border-color .15s;box-sizing:border-box}
+#hubspot-form-container input:focus,
+#hubspot-form-container select:focus,
+#hubspot-form-container textarea:focus{border-color:var(--red)}
+#hubspot-form-container .hs-button{background:var(--red);color:#fff;border:none;border-radius:8px;padding:13px 28px;font-size:15px;font-weight:700;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;margin-top:8px;transition:background .12s;width:auto}
+#hubspot-form-container .hs-button:hover{background:var(--red-dk)}
+#hubspot-form-container .hs-error-msg,
+#hubspot-form-container .hs-error-msgs label{color:var(--red);font-size:11.5px;font-weight:500}
+#hubspot-form-container .hs-richtext,
+#hubspot-form-container .legal-consent-container{font-size:11.5px;color:var(--text4);line-height:1.5;margin-bottom:10px}
+#hubspot-form-container .submitted-message{font-size:14px;color:var(--green);line-height:1.5;padding:8px 0}
+@media(max-width:600px){.hs-modal{padding:24px 20px 26px}.hs-modal-title{font-size:19px}}
 </style>
 </head>
 <body>
@@ -399,6 +434,11 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--tex
 // ── KONFIGURACE OBRÁZKŮ ──────────────────────────────────────────────────────
 // Hero banner (dotazník i výsledky). Soubor lež vedle index.html. Prázdné = bez obrázku.
 const HERO_IMAGE_URL='hero.png';
+
+// ── HUBSPOT FORMULÁŘ (gate před exportem PDF) ─────────────────────────────────
+const HUBSPOT_PORTAL_ID = '26931555';                                   
+const HUBSPOT_FORM_ID   = 'b7ff818b-09b4-44b8-8329-561dd0e6dada';
+const HUBSPOT_REGION    = 'eu1';
 
 // ── CURRENCY ─────────────────────────────────────────────────────────────────
 const CUR={
@@ -785,7 +825,7 @@ function render(){
     pillWrap.appendChild(sel);
     const exp=el('button','export-btn');
     exp.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export PDF';
-    exp.onclick=()=>exportPDF();
+    exp.onclick=()=>openExportGate();
     pillWrap.appendChild(exp);
     acts.appendChild(pillWrap);
     tb.appendChild(acts);
@@ -1373,6 +1413,98 @@ function updateResults(){
     if(ri)ri.classList.toggle('active',k===S.confidence);
   });
   updateMatImpact();
+}
+
+// ── HUBSPOT EXPORT GATE ───────────────────────────────────────────────────────
+// Po kliknutí na "Export PDF" se nejdřív zobrazí modální okno s HubSpot formulářem.
+// Teprve po jeho odeslání (callback onFormSubmitted) se spustí samotný export PDF.
+function hsScriptSrc(){
+  // Pro evropské portály je potřeba region-specific embed (js-eu1...), pro US stačí výchozí.
+  return (HUBSPOT_REGION && HUBSPOT_REGION!=='na1')
+    ? 'https://js-'+HUBSPOT_REGION+'.hsforms.net/forms/embed/v2.js'
+    : 'https://js.hsforms.net/forms/embed/v2.js';
+}
+function ensureHubspotScript(cb){
+  if(window.hbspt&&window.hbspt.forms){cb();return;}
+  let s=document.getElementById('hs-forms-script');
+  if(s){
+    s.addEventListener('load',()=>cb(),{once:true});
+    s.addEventListener('error',()=>cb(),{once:true});
+    return;
+  }
+  s=document.createElement('script');
+  s.id='hs-forms-script';
+  s.type='text/javascript';
+  s.charset='utf-8';
+  s.src=hsScriptSrc();
+  s.onload=()=>cb();
+  s.onerror=()=>cb();
+  document.head.appendChild(s);
+}
+function ensureExportModal(){
+  let ov=document.getElementById('hs-modal-overlay');
+  if(ov)return ov;
+  ov=el('div','hs-modal-overlay');ov.id='hs-modal-overlay';
+  const modal=el('div','hs-modal');
+  const close=el('button','hs-modal-close');close.type='button';close.innerHTML='&times;';
+  close.setAttribute('aria-label','Close');
+  close.onclick=closeExportGate;
+  modal.appendChild(close);
+  const head=el('div','hs-modal-head');
+  head.appendChild(tx('div','hs-modal-title','Download your ROI report'));
+  head.appendChild(tx('div','hs-modal-sub','Please fill in the form below — your personalised PDF report will download automatically once you submit.'));
+  modal.appendChild(head);
+  const fc=el('div');fc.id='hubspot-form-container';
+  modal.appendChild(fc);
+  ov.appendChild(modal);
+  // klik mimo modal = zavřít
+  ov.addEventListener('mousedown',e=>{if(e.target===ov)closeExportGate();});
+  // ESC = zavřít
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExportGate();});
+  document.body.appendChild(ov);
+  return ov;
+}
+function openExportGate(){
+  const ov=ensureExportModal();
+  ov.classList.add('open');
+  const fc=document.getElementById('hubspot-form-container');
+  fc.innerHTML='<div class="hs-loading-msg">Loading form…</div>';
+  loadHubspotForm();
+}
+function closeExportGate(){
+  const ov=document.getElementById('hs-modal-overlay');
+  if(ov)ov.classList.remove('open');
+}
+function loadHubspotForm(){
+  const fc=document.getElementById('hubspot-form-container');
+  if(!fc)return;
+  if(!HUBSPOT_PORTAL_ID){
+    fc.innerHTML='<div class="hs-config-warn">⚠️ HubSpot <b>Portal ID (Hub ID)</b> není nastaveno. '+
+      'Doplňte konstantu <b>HUBSPOT_PORTAL_ID</b> na začátku skriptu, aby se formulář zobrazil. '+
+      'Form ID je již nastaveno na <b>'+HUBSPOT_FORM_ID+'</b>.</div>';
+    return;
+  }
+  ensureHubspotScript(()=>{
+    if(!window.hbspt||!window.hbspt.forms){
+      fc.innerHTML='<div class="hs-config-warn">Nepodařilo se načíst HubSpot formulář. '+
+        'Zkontrolujte připojení k internetu a správnost <b>Portal ID</b> / <b>region</b> ('+HUBSPOT_REGION+').</div>';
+      return;
+    }
+    fc.innerHTML='';
+    window.hbspt.forms.create({
+      portalId: HUBSPOT_PORTAL_ID,
+      formId: HUBSPOT_FORM_ID,
+      region: HUBSPOT_REGION,
+      target: '#hubspot-form-container',
+      onFormSubmitted: function(){
+        // Krátká prodleva, aby uživatel viděl potvrzení odeslání, pak zavřít a exportovat.
+        setTimeout(()=>{
+          closeExportGate();
+          exportPDF();
+        },700);
+      }
+    });
+  });
 }
 
 // ── CLIENT-SIDE PDF EXPORT ──────────────────────────────────────────────────
